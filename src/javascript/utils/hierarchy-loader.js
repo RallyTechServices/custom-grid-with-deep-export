@@ -188,7 +188,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     },
     fetchWsapiRecords: function(config){
         var deferred = Ext.create('Deft.Deferred');
-        this.logger.log('fetchWsapiRecords', config, config.filters.toString());
+        this.logger.log('fetchWsapiRecords', config);
         Ext.create('Rally.data.wsapi.Store',{
                 model: config.model,
                 fetch: config.fetch,
@@ -211,10 +211,13 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
             return ['Children', 'LeafStoryCount','Parent','ObjectID'];
         }
 
-        if (type === this.storyModelName){
+        if (type.toLowerCase() === this.storyModelName){
             return ['Children','Tasks','Parent','PortfolioItem','ObjectID'];
         }
 
+        if (type.toLowerCase() === this.taskModelName){
+            return ['WorkProduct'];
+        }
         return [];
     },
     fetchWsapiCount: function(model, query_filters){

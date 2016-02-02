@@ -37,9 +37,8 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
 
     },
     _buildHierarchy: function(){
-        var rootItems = [],
-            featureName = this.portfolioItemTypeObjects[0].name.replace(/\s/g, '');
-        this.logger.log('_buildHierarchy', featureName);
+        var rootItems = [];
+        this.logger.log('_buildHierarchy');
 
         var objectHash = _.reduce(this.records, function(objHash, record){
             var oid = record.get('ObjectID');
@@ -59,13 +58,12 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             if (parent && objectHash[parent]){
                 objectHash[parent].loadedChildren.push(obj);
             } else {
-                var feature = obj[featureName] && obj[featureName].ObjectID || null;
-                if (parent && feature && objectHash[feature]){
-                    objectHash[feature].loadedChildren.push(obj);
+                var grandParent = obj.Parent && obj.Parent.Parent && obj.Parent.Parent.ObjectID || null;
+                if (grandParent && objectHash[grandParent]){
+                    objectHash[grandParent].loadedChildren.push(obj);
                 } else {
                     rootItems.push(obj);
                 }
-
             }
         }
         return rootItems;

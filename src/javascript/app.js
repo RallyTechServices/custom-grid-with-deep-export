@@ -110,8 +110,9 @@ Ext.define("custom-grid-with-deep-export", {
         });
     },
     _getExportMenuItems: function(){
+        this.logger.log('_getExportMenuItems', this.modelNames[0]);
 
-        if (this.modelNames[0] === 'hierarchicalrequirement'){
+        if (this.modelNames[0].toLowerCase() === 'hierarchicalrequirement'){
             return [{
                 text: 'Export User Stories...',
                 handler: this._export,
@@ -126,11 +127,11 @@ Ext.define("custom-grid-with-deep-export", {
         }
 
         //If its not a story, then its a PI
-        var idx = _.indexOf(this.getPortfolioItemTypeNames(), this.modelNames[0]);
+        var idx = _.indexOf(this.getPortfolioItemTypeNames(), this.modelNames[0].toLowerCase());
         var childModels = [];
         if (idx > 0){
             for (var i = idx; i > 0; i--){
-                childModels.push(this.getPortfolioItemTypeNames()[i-1]);
+                childModels.push(this.getPortfolioItemTypeNames()[i-1].toLowerCase());
             }
         }
 
@@ -161,6 +162,7 @@ Ext.define("custom-grid-with-deep-export", {
         Rally.ui.notify.Notifier.showError({message: msg});
     },
     _showStatus: function(message){
+        this.logger.log('_showstatus', message);
         if (message) {
             Rally.ui.notify.Notifier.showStatus({
                 message: message,
@@ -198,14 +200,9 @@ Ext.define("custom-grid-with-deep-export", {
         return [];
     },
     _getExportFetch: function(){
-        return _.pluck(this._getGridColumns(), 'dataIndex');
+        return _.pluck(this._getExportColumns(), 'dataIndex');
     },
     _export: function(args){
-
-        if (!grid){
-            this._showError("No data to export.");
-            return;
-        }
 
         var columns = this._getExportColumns(),
             fetch = this._getExportFetch(),
@@ -312,7 +309,7 @@ Ext.define("custom-grid-with-deep-export", {
                     _.each(records, function(d){
                         //Use ordinal to make sure the lowest level portfolio item type is the first in the array.
                         var idx = Number(d.get('Ordinal'));
-                        portfolioItemTypes[idx] = { typePath: d.get('TypePath'), name: d.get('Name') };
+                        portfolioItemTypes[idx] = { typePath: d.get('TypePath').toLowerCase(), name: d.get('Name') };
                         //portfolioItemTypes.reverse();
                     });
                     deferred.resolve(portfolioItemTypes);

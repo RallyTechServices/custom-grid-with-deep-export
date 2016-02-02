@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Feb 01 2016 21:04:08 GMT-0700 (MST) -->
+    <!--  Build Date: Mon Feb 01 2016 21:30:51 GMT-0700 (MST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Mon Feb 01 2016 21:04:08 GMT-0700 (MST)";
-        var CHECKSUM = 65095103190;
+        var APP_BUILD_DATE = "Mon Feb 01 2016 21:30:51 GMT-0700 (MST)";
+        var CHECKSUM = 65428804714;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -642,9 +642,8 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
 
     },
     _buildHierarchy: function(){
-        var rootItems = [],
-            featureName = this.portfolioItemTypeObjects[0].name.replace(/\s/g, '');
-        this.logger.log('_buildHierarchy', featureName);
+        var rootItems = [];
+        this.logger.log('_buildHierarchy');
 
         var objectHash = _.reduce(this.records, function(objHash, record){
             var oid = record.get('ObjectID');
@@ -664,13 +663,12 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             if (parent && objectHash[parent]){
                 objectHash[parent].loadedChildren.push(obj);
             } else {
-                var feature = obj[featureName] && obj[featureName].ObjectID || null;
-                if (parent && feature && objectHash[feature]){
-                    objectHash[feature].loadedChildren.push(obj);
+                var grandParent = obj.Parent && obj.Parent.Parent && obj.Parent.Parent.ObjectID || null;
+                if (grandParent && objectHash[grandParent]){
+                    objectHash[grandParent].loadedChildren.push(obj);
                 } else {
                     rootItems.push(obj);
                 }
-
             }
         }
         return rootItems;
@@ -1081,7 +1079,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     },
     fetchWsapiRecords: function(config){
         var deferred = Ext.create('Deft.Deferred');
-        this.logger.log('fetchWsapiRecords', config, config.filters.toString());
+        this.logger.log('fetchWsapiRecords', config);
         Ext.create('Rally.data.wsapi.Store',{
                 model: config.model,
                 fetch: config.fetch,
@@ -1104,10 +1102,13 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
             return ['Children', 'LeafStoryCount','Parent','ObjectID'];
         }
 
-        if (type === this.storyModelName){
+        if (type.toLowerCase() === this.storyModelName){
             return ['Children','Tasks','Parent','PortfolioItem','ObjectID'];
         }
 
+        if (type.toLowerCase() === this.taskModelName){
+            return ['WorkProduct'];
+        }
         return [];
     },
     fetchWsapiCount: function(model, query_filters){
@@ -1409,8 +1410,9 @@ Ext.define("custom-grid-with-deep-export", {
         });
     },
     _getExportMenuItems: function(){
+        this.logger.log('_getExportMenuItems', this.modelNames[0]);
 
-        if (this.modelNames[0] === 'hierarchicalrequirement'){
+        if (this.modelNames[0].toLowerCase() === 'hierarchicalrequirement'){
             return [{
                 text: 'Export User Stories...',
                 handler: this._export,
@@ -1425,11 +1427,11 @@ Ext.define("custom-grid-with-deep-export", {
         }
 
         //If its not a story, then its a PI
-        var idx = _.indexOf(this.getPortfolioItemTypeNames(), this.modelNames[0]);
+        var idx = _.indexOf(this.getPortfolioItemTypeNames(), this.modelNames[0].toLowerCase());
         var childModels = [];
         if (idx > 0){
             for (var i = idx; i > 0; i--){
-                childModels.push(this.getPortfolioItemTypeNames()[i-1]);
+                childModels.push(this.getPortfolioItemTypeNames()[i-1].toLowerCase());
             }
         }
 
@@ -1460,6 +1462,7 @@ Ext.define("custom-grid-with-deep-export", {
         Rally.ui.notify.Notifier.showError({message: msg});
     },
     _showStatus: function(message){
+        this.logger.log('_showstatus', message);
         if (message) {
             Rally.ui.notify.Notifier.showStatus({
                 message: message,
@@ -1497,14 +1500,9 @@ Ext.define("custom-grid-with-deep-export", {
         return [];
     },
     _getExportFetch: function(){
-        return _.pluck(this._getGridColumns(), 'dataIndex');
+        return _.pluck(this._getExportColumns(), 'dataIndex');
     },
     _export: function(args){
-
-        if (!grid){
-            this._showError("No data to export.");
-            return;
-        }
 
         var columns = this._getExportColumns(),
             fetch = this._getExportFetch(),
@@ -1611,7 +1609,7 @@ Ext.define("custom-grid-with-deep-export", {
                     _.each(records, function(d){
                         //Use ordinal to make sure the lowest level portfolio item type is the first in the array.
                         var idx = Number(d.get('Ordinal'));
-                        portfolioItemTypes[idx] = { typePath: d.get('TypePath'), name: d.get('Name') };
+                        portfolioItemTypes[idx] = { typePath: d.get('TypePath').toLowerCase(), name: d.get('Name') };
                         //portfolioItemTypes.reverse();
                     });
                     deferred.resolve(portfolioItemTypes);
