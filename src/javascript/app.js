@@ -46,7 +46,7 @@ Ext.define("custom-grid-with-deep-export", {
 
         this.modelNames = [this.getSetting('type')];
         this.logger.log('_buildStore', this.modelNames);
-        var fetch = ['FormattedID', 'Name'] ;
+        var fetch = ['FormattedID', 'Name'];
 
         Ext.create('Rally.data.wsapi.TreeStoreBuilder').build({
             models: this.modelNames,
@@ -58,8 +58,10 @@ Ext.define("custom-grid-with-deep-export", {
         });
     },
     _addGridboard: function(store) {
-        this.logger.log('_addGridboard', store);
         this.down('#display_box').removeAll();
+
+        var filters = this.getSetting('query') ? Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query')) : [];
+        this.logger.log('_addGridboard', store);
 
 
         this.gridboard = this.down('#display_box').add({
@@ -102,6 +104,9 @@ Ext.define("custom-grid-with-deep-export", {
                 },
                 gridConfig: {
                     store: store,
+                    storeConfig: {
+                        filters: filters
+                    },
                     columnCfgs: [
                         'Name'
                     ]
@@ -162,9 +167,9 @@ Ext.define("custom-grid-with-deep-export", {
         Rally.ui.notify.Notifier.showError({message: msg});
     },
     _showStatus: function(message){
-        this.logger.log('_showstatus', message);
+        this.logger.log('_showstatus', message, this);
         if (message) {
-            Rally.ui.notify.Notifier.showStatus({
+           Rally.ui.notify.Notifier.showStatus({
                 message: message,
                 showForever: true,
                 closable: false,
@@ -191,7 +196,7 @@ Ext.define("custom-grid-with-deep-export", {
         }
 
         if (query){
-            if (filters){
+            if (filters && filters.length > 0){
                 return filters.and(filters, Rally.data.wsapi.Filter.fromQueryString(query));
             } else {
                 return Rally.data.wsapi.Filter.fromQueryString(query);

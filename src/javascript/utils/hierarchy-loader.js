@@ -99,24 +99,9 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     fetchPortfolioItems: function(type, parentRecords){
 
         var fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
-            chunks = this._getChunks(parentRecords, 'Children', 'Count'),
-            promises = [];
+            chunks = this._getChunks(parentRecords, 'Children', 'Count');
 
-        this.fireEvent('statusupdate', 'Loading children for ' + parentRecords.length + ' artifacts');
-
-        _.each(chunks, function(c){
-            var filters = _.map(c, function(ids){ return {property: 'Parent.ObjectID', value: ids }; }),
-                config = {
-                    model: type,
-                    fetch: fetch,
-                    filters: Rally.data.wsapi.Filter.or(filters)
-                };
-            promises.push(function(){ return this.fetchWsapiRecords(config); });
-        });
-
-        this.logger.log('fetchPortfolioItems type', type, 'parentRecords', parentRecords);
-
-        return this.throttle(promises, this.maxParallelCalls, this);
+        return this.fetchChunks(type, fetch, chunks, "Parent.ObjectID", Ext.String.format("Please Wait... Loading Children for {0} Portfolio Items", parentRecords.length));
     },
     _getChunks: function(parentRecords, countField, countFieldAttribute){
         var chunks = [],
@@ -141,41 +126,36 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
                 chunks[idx].push(r.get('ObjectID'));
             }
         });
+
         return chunks;
     },
     fetchUserStories: function(parentRecords){
         var type = this.storyModelName,
             fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
             chunks = this._getChunks(parentRecords, 'LeafStoryCount'),
-            promises = [],
             featureParentName = this.portfolioItemTypes[0].name.replace(/\s/g, '') + ".ObjectID";
 
-        this.logger.log('fetchUserStories',fetch,  parentRecords, chunks);
-        this.fireEvent('statusupdate', 'Loading User Stories for ' + parentRecords.length + ' Portfolio Items');
-
-        _.each(chunks, function(c){
-            var filters = _.map(c, function(id){ return {property: featureParentName, value: id }; }),
-                config = {
-                    model: type,
-                    fetch: fetch,
-                    filters: Rally.data.wsapi.Filter.or(filters)
-                };
-            promises.push(function(){ return this.fetchWsapiRecords(config); });
-        });
-
-        return this.throttle(promises, this.maxParallelCalls, this);
+        return this.fetchChunks(type, fetch, chunks, featureParentName, Ext.String.format("Please Wait... Loading User Stories for {0} Portfolio Items", parentRecords.length));
     },
     fetchTasks: function(parentRecords){
         var type = this.taskModelName,
             fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
-            chunks = this._getChunks(parentRecords, 'Tasks', 'Count'),
-            promises = [];
+            chunks = this._getChunks(parentRecords, 'Tasks', 'Count');
 
-        this.logger.log('fetchTasks',fetch,  parentRecords, chunks);
+        return this.fetchChunks(type, fetch, chunks, "WorkProduct.ObjectID", Ext.String.format("Please Wait... Loading Tasks for {0} User Stories", parentRecords.length));
+    },
+    fetchChunks: function(type, fetch, chunks, chunkProperty, statusString){
+        this.logger.log('fetchChunks',fetch,  chunkProperty, chunks);
 
-        this.fireEvent('statusupdate', 'Loading Tasks for ' + parentRecords.length + ' User Stories');
+        if (chunks && chunks.length > 0 && chunks[0].length===0){
+            return Promise.resolve([]);
+        }
+
+        this.fireEvent('statusupdate', statusString);
+
+        var promises = [];
         _.each(chunks, function(c){
-            var filters = _.map(c, function(ids){ return {property: 'WorkProduct.ObjectID', value: ids }; }),
+            var filters = _.map(c, function(ids){ return {property: chunkProperty, value: ids }; }),
                 config = {
                     model: type,
                     fetch: fetch,
@@ -188,7 +168,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     },
     fetchWsapiRecords: function(config){
         var deferred = Ext.create('Deft.Deferred');
-        this.logger.log('fetchWsapiRecords', config);
+
         Ext.create('Rally.data.wsapi.Store',{
                 model: config.model,
                 fetch: config.fetch,
@@ -216,85 +196,9 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         }
 
         if (type.toLowerCase() === this.taskModelName){
-            return ['WorkProduct'];
+            return ['WorkProduct','ObjectID'];
         }
         return [];
-    },
-    fetchWsapiCount: function(model, query_filters){
-        var deferred = Ext.create('Deft.Deferred');
-
-        Ext.create('Rally.data.wsapi.Store',{
-            model: model,
-            fetch: ['ObjectID'],
-            filters: query_filters,
-            limit: 1,
-            pageSize: 1
-        }).load({
-            callback: function(records, operation, success){
-                if (success){
-                    deferred.resolve(operation.resultSet.totalRecords);
-                } else {
-                    deferred.reject(Ext.String.format("Error getting {0} count for {1}: {2}", model, query_filters.toString(), operation.error.errors.join(',')));
-                }
-            }
-        });
-        return deferred;
-    },
-    fetchWsapiRecordsWithPaging: function(config){
-        var deferred = Ext.create('Deft.Deferred'),
-            promises = [],
-            me = this;
-
-        this.fetchWsapiCount(config.model, config.filters).then({
-            success: function(totalCount){
-                var store = Ext.create('Rally.data.wsapi.Store',{
-                        model: config.model,
-                        fetch: config.fetch,
-                        filters: config.filters,
-                        pageSize: 200
-                    }),
-                    totalPages = Math.ceil(totalCount/200);
-
-                var pages = _.range(1,totalPages+1,1);
-
-                this.fireEvent('statusupdate',Ext.String.format(config.statusDisplayString || "Loading {0} artifacts", totalCount));
-
-                _.each(pages, function(page){
-                    promises.push(function () {return me.loadStorePage(page, store);});
-                });
-
-                PortfolioItemCostTracking.promise.ParallelThrottle.throttle(promises, 12, me).then({
-                    success: function(results){
-                        deferred.resolve(_.flatten(results));
-                    },
-                    failure: function(msg){
-                        deferred.reject(msg);
-                    },
-                    scope: me
-                });
-            },
-            failure: function(msg){
-                deferred.reject(msg);
-            },
-            scope: me
-        });
-        return deferred;
-    },
-    loadStorePage: function(pageNum, store){
-        var deferred = Ext.create('Deft.Deferred');
-
-        store.loadPage(pageNum, {
-            callback: function(records, operation){
-                if (operation.wasSuccessful()){
-                    deferred.resolve(records);
-                } else {
-                    deferred.reject('loadStorePage error: ' + operation.error.errors.join(','));
-                }
-            },
-            scope: this
-        });
-
-        return deferred;
     },
     throttle: function (fns, maxParallelCalls, scope) {
 

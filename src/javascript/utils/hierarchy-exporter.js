@@ -19,17 +19,16 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
     },
     export: function(){
 
-        setTimeout(this.fireEvent('exportupdate', "Preparing export data"), 500);
-
+        this.fireEvent('exportupdate', "Preparing export data");
+      
         this.logger.log('export', this.records, this);
 
-        var columns = this.columns;
-
-        var hierarchicalData = this._buildHierarchy();
-
-        var exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
+        var columns = _.filter(this.columns, function(c){ return c.dataIndex !== "FormattedID"; }),
+            hierarchicalData = this._buildHierarchy(),
+            exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
 
         columns = this._getAncestorTypeColumns(hierarchicalData[0]._type).concat(columns);
+
         var csv = this._transformDataToDelimitedString(exportData, columns);
 
         this.saveCSVToFile(csv, this.fileName);
@@ -55,6 +54,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                          obj.PortfolioItem && obj.PortfolioItem.ObjectID ||
                          obj.WorkProduct && obj.WorkProduct.ObjectID;
 
+            if (obj._type === 'task') { console.log('obj',parent, obj._type, obj)};
             if (parent && objectHash[parent]){
                 objectHash[parent].loadedChildren.push(obj);
             } else {
@@ -198,8 +198,9 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                 dataIndex: 'type',
                 text: 'Artifact Type'
             });
-            columns.reverse();
+
         }
+        columns.reverse();
         return columns;
     },
     saveCSVToFile:function(csv,file_name,type_object){
