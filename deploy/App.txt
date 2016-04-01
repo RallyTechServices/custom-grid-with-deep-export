@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Feb 02 2016 07:35:36 GMT-0700 (MST) -->
+    <!--  Build Date: Fri Apr 01 2016 09:25:30 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Tue Feb 02 2016 07:35:36 GMT-0700 (MST)";
-        var CHECKSUM = 29837895073;
+        var APP_BUILD_DATE = "Fri Apr 01 2016 09:25:30 GMT-0600 (MDT)";
+        var CHECKSUM = 30519912576;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -198,7 +198,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
     export: function(){
 
         this.fireEvent('exportupdate', "Preparing export data");
-      
+
         this.logger.log('export', this.records, this);
 
         var columns = _.filter(this.columns, function(c){ return c.dataIndex !== "FormattedID"; }),
@@ -700,6 +700,24 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
 
 });
 
+Ext.override(Rally.ui.gridboard.plugin.GridBoardFieldPicker, {
+    gridFieldBlackList: [
+        'Actuals',
+        'Changesets',
+        'Children',
+       // 'Description',
+       // 'Notes',
+        'ObjectID',
+        'Predecessors',
+        'RevisionHistory',
+        'Subscription',
+        'Successors',
+        'TaskIndex',
+        'Workspace',
+        'VersionId'
+    ]
+});
+
 (function () {
     var Ext = window.Ext4 || window.Ext;
 
@@ -865,7 +883,7 @@ Ext.define("custom-grid-with-deep-export", {
                     {
                         ptype: 'rallygridboardfieldpicker',
                         headerPosition: 'left',
-                        modelNames: this.modelNames,
+                        modelNames: this.modelNames
                         //stateful: true,
                         //stateId: this.getContext().getScopedStateId('columns-example')
                     },
@@ -1010,7 +1028,8 @@ Ext.define("custom-grid-with-deep-export", {
             fetch: fetch,
             filters: filters,
             loadChildModels: childModels,
-            portfolioItemTypes: this.portfolioItemTypes
+            portfolioItemTypes: this.portfolioItemTypes,
+            context: this.getContext().getDataContext()
         });
         hierarchyLoader.on('statusupdate', this._showStatus, this);
         hierarchyLoader.on('hierarchyloadartifactsloaded', exporter.setRecords, exporter);
