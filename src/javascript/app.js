@@ -87,7 +87,7 @@ Ext.define("custom-grid-with-deep-export", {
                     {
                         ptype: 'rallygridboardfieldpicker',
                         headerPosition: 'left',
-                        modelNames: this.modelNames,
+                        modelNames: this.modelNames
                         //stateful: true,
                         //stateId: this.getContext().getScopedStateId('columns-example')
                     },
@@ -232,7 +232,8 @@ Ext.define("custom-grid-with-deep-export", {
             fetch: fetch,
             filters: filters,
             loadChildModels: childModels,
-            portfolioItemTypes: this.portfolioItemTypes
+            portfolioItemTypes: this.portfolioItemTypes,
+            context: this.getContext().getDataContext()
         });
         hierarchyLoader.on('statusupdate', this._showStatus, this);
         hierarchyLoader.on('hierarchyloadartifactsloaded', exporter.setRecords, exporter);

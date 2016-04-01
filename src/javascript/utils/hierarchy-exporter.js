@@ -20,7 +20,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
     export: function(){
 
         this.fireEvent('exportupdate', "Preparing export data");
-      
+
         this.logger.log('export', this.records, this);
 
         var columns = _.filter(this.columns, function(c){ return c.dataIndex !== "FormattedID"; }),
