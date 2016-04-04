@@ -177,6 +177,9 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
             }).load({
                 callback: function(records, operation){
                     if (operation.wasSuccessful()){
+                        var fids = _.map(records, function(r){
+                            return r.get('FormattedID')
+                        });
                         deferred.resolve(records);
                     } else {
                         deferred.reject('fetchWsapiRecords error: ' + operation.error.errors.join(','));
