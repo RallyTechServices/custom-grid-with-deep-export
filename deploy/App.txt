@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Fri Apr 01 2016 09:25:30 GMT-0600 (MDT) -->
+    <!--  Build Date: Mon Apr 04 2016 07:25:55 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Fri Apr 01 2016 09:25:30 GMT-0600 (MDT)";
-        var CHECKSUM = 30519912576;
+        var APP_BUILD_DATE = "Mon Apr 04 2016 07:25:55 GMT-0600 (MDT)";
+        var CHECKSUM = 30678913527;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -232,7 +232,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                          obj.PortfolioItem && obj.PortfolioItem.ObjectID ||
                          obj.WorkProduct && obj.WorkProduct.ObjectID;
 
-            if (obj._type === 'task') { console.log('obj',parent, obj._type, obj)};
+         //   if (obj._type === 'task') { console.log('obj',parent, obj._type, obj)};
             if (parent && objectHash[parent]){
                 objectHash[parent].loadedChildren.push(obj);
             } else {
@@ -263,7 +263,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                 var val = obj[key];
                 if (val){
                     if (re.test(val)){ //enclose in double quotes if we have the delimiters
-                        val = val.replace('"','\"\"');
+                        val = val.replace(/\"/g,'\"\"');
                         val = Ext.String.format("\"{0}\"",val);
                     }
                 }
@@ -642,6 +642,9 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
             }).load({
                 callback: function(records, operation){
                     if (operation.wasSuccessful()){
+                        var fids = _.map(records, function(r){
+                            return r.get('FormattedID')
+                        });
                         deferred.resolve(records);
                     } else {
                         deferred.reject('fetchWsapiRecords error: ' + operation.error.errors.join(','));

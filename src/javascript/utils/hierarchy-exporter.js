@@ -54,7 +54,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                          obj.PortfolioItem && obj.PortfolioItem.ObjectID ||
                          obj.WorkProduct && obj.WorkProduct.ObjectID;
 
-            if (obj._type === 'task') { console.log('obj',parent, obj._type, obj)};
+         //   if (obj._type === 'task') { console.log('obj',parent, obj._type, obj)};
             if (parent && objectHash[parent]){
                 objectHash[parent].loadedChildren.push(obj);
             } else {
@@ -85,7 +85,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                 var val = obj[key];
                 if (val){
                     if (re.test(val)){ //enclose in double quotes if we have the delimiters
-                        val = val.replace('"','\"\"');
+                        val = val.replace(/\"/g,'\"\"');
                         val = Ext.String.format("\"{0}\"",val);
                     }
                 }
