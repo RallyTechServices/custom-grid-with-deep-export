@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Apr 04 2016 07:25:55 GMT-0600 (MDT) -->
+    <!--  Build Date: Mon Apr 18 2016 15:02:15 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Mon Apr 04 2016 07:25:55 GMT-0600 (MDT)";
-        var CHECKSUM = 30678913527;
+        var APP_BUILD_DATE = "Mon Apr 18 2016 15:02:15 GMT-0600 (MDT)";
+        var CHECKSUM = 30654524738;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -986,14 +986,13 @@ Ext.define("custom-grid-with-deep-export", {
         return [];
     },
     _getExportFilters: function(){
-        var grid = this.down('rallygridboard').getGridOrBoard(),
+        var grid = this.down('rallygridboard'),
             filters = [],
             query = this.getSetting('query');
 
         if (grid.currentCustomFilter && grid.currentCustomFilter.filters){
             filters = grid.currentCustomFilter.filters;
         }
-
         if (query){
             if (filters && filters.length > 0){
                 return filters.and(filters, Rally.data.wsapi.Filter.fromQueryString(query));
@@ -1001,7 +1000,7 @@ Ext.define("custom-grid-with-deep-export", {
                 return Rally.data.wsapi.Filter.fromQueryString(query);
             }
         }
-        return [];
+        return filters;
     },
     _getExportFetch: function(){
         return _.pluck(this._getExportColumns(), 'dataIndex');
