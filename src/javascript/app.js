@@ -187,14 +187,13 @@ Ext.define("custom-grid-with-deep-export", {
         return [];
     },
     _getExportFilters: function(){
-        var grid = this.down('rallygridboard').getGridOrBoard(),
+        var grid = this.down('rallygridboard'),
             filters = [],
             query = this.getSetting('query');
 
         if (grid.currentCustomFilter && grid.currentCustomFilter.filters){
             filters = grid.currentCustomFilter.filters;
         }
-
         if (query){
             if (filters && filters.length > 0){
                 return filters.and(filters, Rally.data.wsapi.Filter.fromQueryString(query));
@@ -202,7 +201,7 @@ Ext.define("custom-grid-with-deep-export", {
                 return Rally.data.wsapi.Filter.fromQueryString(query);
             }
         }
-        return [];
+        return filters;
     },
     _getExportFetch: function(){
         return _.pluck(this._getExportColumns(), 'dataIndex');
