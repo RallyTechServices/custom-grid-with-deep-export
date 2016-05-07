@@ -37,7 +37,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
     },
     _buildHierarchy: function(){
         var rootItems = [];
-        this.logger.log('_buildHierarchy');
+        this.logger.log('_buildHierarchy', this.records.length);
 
         var objectHash = _.reduce(this.records, function(objHash, record){
             var oid = record.get('ObjectID');
@@ -45,6 +45,8 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             objHash[oid].loadedChildren = [];
             return objHash;
         }, {});
+
+        this.logger.log('_buildhierarchy Hash', objectHash)
 
         this.records = null;
 

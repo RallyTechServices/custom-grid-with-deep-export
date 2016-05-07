@@ -130,6 +130,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         return chunks;
     },
     fetchUserStories: function(parentRecords){
+
         var type = this.storyModelName,
             fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
             chunks = this._getChunks(parentRecords, 'LeafStoryCount'),
@@ -173,6 +174,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
                 model: config.model,
                 fetch: config.fetch,
                 filters: config.filters,
+                compact: false,
                 limit: 'Infinity'
             }).load({
                 callback: function(records, operation){
@@ -195,7 +197,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         }
 
         if (type.toLowerCase() === this.storyModelName){
-            return ['Children','Tasks','Parent','PortfolioItem','ObjectID'];
+            return ['FormattedID','Children','Tasks','Parent','PortfolioItem','HasParent','ObjectID'];
         }
 
         if (type.toLowerCase() === this.taskModelName){
