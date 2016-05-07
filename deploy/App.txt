@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Apr 18 2016 15:02:15 GMT-0600 (MDT) -->
+    <!--  Build Date: Sat May 07 2016 11:07:08 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Mon Apr 18 2016 15:02:15 GMT-0600 (MDT)";
-        var CHECKSUM = 30654524738;
+        var APP_BUILD_DATE = "Sat May 07 2016 11:07:08 GMT-0600 (MDT)";
+        var CHECKSUM = 30914846458;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -215,7 +215,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
     },
     _buildHierarchy: function(){
         var rootItems = [];
-        this.logger.log('_buildHierarchy');
+        this.logger.log('_buildHierarchy', this.records.length);
 
         var objectHash = _.reduce(this.records, function(objHash, record){
             var oid = record.get('ObjectID');
@@ -223,6 +223,8 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             objHash[oid].loadedChildren = [];
             return objHash;
         }, {});
+
+        this.logger.log('_buildhierarchy Hash', objectHash)
 
         this.records = null;
 
@@ -595,6 +597,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         return chunks;
     },
     fetchUserStories: function(parentRecords){
+
         var type = this.storyModelName,
             fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
             chunks = this._getChunks(parentRecords, 'LeafStoryCount'),
@@ -638,6 +641,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
                 model: config.model,
                 fetch: config.fetch,
                 filters: config.filters,
+                compact: false,
                 limit: 'Infinity'
             }).load({
                 callback: function(records, operation){
@@ -660,7 +664,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         }
 
         if (type.toLowerCase() === this.storyModelName){
-            return ['Children','Tasks','Parent','PortfolioItem','ObjectID'];
+            return ['FormattedID','Children','Tasks','Parent','PortfolioItem','HasParent','ObjectID'];
         }
 
         if (type.toLowerCase() === this.taskModelName){
