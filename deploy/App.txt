@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sat May 07 2016 11:07:08 GMT-0600 (MDT) -->
+    <!--  Build Date: Wed May 25 2016 20:45:20 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Sat May 07 2016 11:07:08 GMT-0600 (MDT)";
-        var CHECKSUM = 30914846458;
+        var APP_BUILD_DATE = "Wed May 25 2016 20:45:20 GMT-0600 (MDT)";
+        var CHECKSUM = 31207434906;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -191,6 +191,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         this.fileName = config.fileName || "export.csv";
         this.columns = config.columns || [{dataIndex: 'FormattedID', text: 'ID'},{dataIndex: 'Name', text: 'Name'}];
         this.portfolioItemTypeObjects =  config.portfolioItemTypeObjects || [];
+
     },
     setRecords: function(type, records){
         this.records = (this.records || []).concat(records);
@@ -206,6 +207,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
 
         columns = this._getAncestorTypeColumns(hierarchicalData[0]._type).concat(columns);
+        console.log('columns', columns);
 
         var csv = this._transformDataToDelimitedString(exportData, columns);
 
@@ -338,6 +340,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
 
         rec[type] = recData.FormattedID;
         rec.type = this.getTypePathDisplayName(recData._type);
+
         _.each(columns, function(c){
             var field = c.dataIndex || null;
             if (field){
@@ -1007,7 +1010,11 @@ Ext.define("custom-grid-with-deep-export", {
         return filters;
     },
     _getExportFetch: function(){
-        return _.pluck(this._getExportColumns(), 'dataIndex');
+        var fetch =  _.pluck(this._getExportColumns(), 'dataIndex');
+        if (Ext.Array.contains(fetch, 'TaskActualTotal')){
+            fetch.push('Actuals');
+        }
+        return fetch;
     },
     _export: function(args){
 
@@ -1017,7 +1024,7 @@ Ext.define("custom-grid-with-deep-export", {
             modelName = this.modelNames[0],
             childModels = args.childModels;
 
-        this.logger.log('_export', args, columns, filters.toString(), childModels);
+        this.logger.log('_export', fetch, args, columns, filters.toString(), childModels);
 
         var exporter = Ext.create('Rally.technicalservices.HierarchyExporter', {
             fileName: 'hierarchy-export.csv',

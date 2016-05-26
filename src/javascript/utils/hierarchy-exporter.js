@@ -13,6 +13,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         this.fileName = config.fileName || "export.csv";
         this.columns = config.columns || [{dataIndex: 'FormattedID', text: 'ID'},{dataIndex: 'Name', text: 'Name'}];
         this.portfolioItemTypeObjects =  config.portfolioItemTypeObjects || [];
+
     },
     setRecords: function(type, records){
         this.records = (this.records || []).concat(records);
@@ -28,6 +29,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
 
         columns = this._getAncestorTypeColumns(hierarchicalData[0]._type).concat(columns);
+        console.log('columns', columns);
 
         var csv = this._transformDataToDelimitedString(exportData, columns);
 
@@ -160,6 +162,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
 
         rec[type] = recData.FormattedID;
         rec.type = this.getTypePathDisplayName(recData._type);
+
         _.each(columns, function(c){
             var field = c.dataIndex || null;
             if (field){
