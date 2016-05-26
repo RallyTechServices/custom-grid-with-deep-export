@@ -204,7 +204,11 @@ Ext.define("custom-grid-with-deep-export", {
         return filters;
     },
     _getExportFetch: function(){
-        return _.pluck(this._getExportColumns(), 'dataIndex');
+        var fetch =  _.pluck(this._getExportColumns(), 'dataIndex');
+        if (Ext.Array.contains(fetch, 'TaskActualTotal')){
+            fetch.push('Actuals');
+        }
+        return fetch;
     },
     _export: function(args){
 
@@ -214,7 +218,7 @@ Ext.define("custom-grid-with-deep-export", {
             modelName = this.modelNames[0],
             childModels = args.childModels;
 
-        this.logger.log('_export', args, columns, filters.toString(), childModels);
+        this.logger.log('_export', fetch, args, columns, filters.toString(), childModels);
 
         var exporter = Ext.create('Rally.technicalservices.HierarchyExporter', {
             fileName: 'hierarchy-export.csv',
