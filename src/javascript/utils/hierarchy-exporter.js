@@ -167,9 +167,13 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             var field = c.dataIndex || null;
             if (field){
                 var data = recData[field];
-
                 if (Ext.isObject(data)){
-                    rec[field] = data._refObjectName;
+                    if (data._tagsNameArray && data._tagsNameArray.length > 0) {
+                        var names = _.pluck(data._tagsNameArray, 'Name');
+                        rec[field] = names.join(',');
+                    } else {
+                        rec[field] = data._refObjectName;
+                    }
                 } else if (Ext.isDate(data)){
                     rec[field] = Rally.util.DateTime.formatWithDefaultDateTime(data);
                 } else {
