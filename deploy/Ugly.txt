@@ -3,10 +3,10 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed May 25 2016 20:45:52 GMT-0600 (MDT) -->
+    <!--  Build Date: Mon Jun 13 2016 22:17:45 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed May 25 2016 20:45:52 GMT-0600 (MDT)";
+        var APP_BUILD_DATE = "Mon Jun 13 2016 22:17:45 GMT-0600 (MDT)";
         var CHECKSUM = [%= checksum %];
     </script>
     
