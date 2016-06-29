@@ -72,16 +72,21 @@ Ext.define("custom-grid-with-deep-export", {
                 plugins: [
                     'rallygridboardaddnew',
                     {
-                        ptype: 'rallygridboardcustomfiltercontrol',
-                        filterControlConfig: {
+                        ptype: 'rallygridboardinlinefiltercontrol',
+                        inlineFilterButtonConfig: {
+                            stateful: true,
+                            stateId: this.getContext().getScopedStateId('filters-1'),
                             modelNames: this.modelNames,
-                         //   stateful: true,
-                         //   stateId: this.getContext().getScopedStateId('custom-filter-example')
-                        },
-                        showOwnerFilter: true,
-                        ownerFilterControlConfig: {
-                        //    stateful: true,
-                        //    stateId: this.getContext().getScopedStateId('owner-filter-example')
+                            inlineFilterPanelConfig: {
+                                quickFilterPanelConfig: {
+                                    defaultFields: [
+                                        'ArtifactSearch',
+                                        'Owner',
+                                        'ModelType',
+                                        'Milestones'
+                                    ]
+                                }
+                            }
                         }
                     },
                     {
