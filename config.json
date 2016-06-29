@@ -1,7 +1,7 @@
 {
     "name": "Custom Grid with Deep Export",
     "className": "custom-grid-with-deep-export",
-    "server": "https://demo-west.rallydev.com",
-    "sdk": "2.0",
+    "server": "https://demo-east.rallydev.com",
+    "sdk": "2.1",
     "apiKey": "_PUT_APIKEY_HERE_"
 }
