@@ -106,7 +106,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     _getChunks: function(parentRecords, countField, countFieldAttribute){
         var chunks = [],
             childCount = 0,
-            maxListSize = 25,
+            maxListSize = 100,
             childCountTarget = 200,
             idx = 0;
 
@@ -160,7 +160,8 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
                 config = {
                     model: type,
                     fetch: fetch,
-                    filters: Rally.data.wsapi.Filter.or(filters)
+                    filters: Rally.data.wsapi.Filter.or(filters),
+                    context: {project: null}
                 };
             promises.push(function(){ return this.fetchWsapiRecords(config); });
         });
@@ -170,18 +171,14 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     fetchWsapiRecords: function(config){
         var deferred = Ext.create('Deft.Deferred');
 
-        Ext.create('Rally.data.wsapi.Store',{
-                model: config.model,
-                fetch: config.fetch,
-                filters: config.filters,
-                compact: false,
-                limit: 'Infinity'
-            }).load({
+        config.compact = false;
+        config.limit = "Infinity";
+        config.allowPostGet = true;
+
+        Ext.create('Rally.data.wsapi.Store', config
+            ).load({
                 callback: function(records, operation){
                     if (operation.wasSuccessful()){
-                        var fids = _.map(records, function(r){
-                            return r.get('FormattedID')
-                        });
                         deferred.resolve(records);
                     } else {
                         deferred.reject('fetchWsapiRecords error: ' + operation.error.errors.join(','));

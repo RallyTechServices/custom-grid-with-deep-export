@@ -29,7 +29,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
 
         columns = this._getAncestorTypeColumns(hierarchicalData[0]._type).concat(columns);
-        console.log('columns', columns);
+        this.logger.log('columns', columns);
 
         var csv = this._transformDataToDelimitedString(exportData, columns);
 
