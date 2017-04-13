@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Apr 05 2017 22:02:33 GMT-0600 (MDT) -->
+    <!--  Build Date: Thu Apr 13 2017 13:59:10 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Apr 05 2017 22:02:33 GMT-0600 (MDT)";
-        var CHECKSUM = 31895220590;
+        var APP_BUILD_DATE = "Thu Apr 13 2017 13:59:10 GMT-0600 (MDT)";
+        var CHECKSUM = 32677813024;
     </script>
     
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
@@ -254,7 +254,9 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         var csvArray = [],
             delimiter = ",",
             rowDelimiter = "\r\n",
-            re = new RegExp(delimiter + '|\"|\r|\n','g');
+            re = new RegExp(delimiter + '|\"|\r|\n','g'),
+            reHTML = new RegExp('<\/?[^>]+>', 'g'),
+            reNbsp = new RegExp('&nbsp;','ig');
 
         var column_keys = _.map(columns, function(c){ return c.dataIndex; }),
             column_headers = _.pluck(columns, 'text');
@@ -266,15 +268,27 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             Ext.Array.each(column_keys, function(key){
                 var val = obj[key];
                 if (val){
+                    if (reHTML.test(val)){
+                        val = val.replace('<br>','\r\n');
+                        this.logger.log('html val', val);
+                        val = Ext.util.Format.htmlDecode(val);
+                        val = Ext.util.Format.stripTags(val);
+                        this.logger.log('stripped html val', val);
+                    }
+                    if (reNbsp.test(val)){
+                        val = val.replace(reNbsp,' ');
+                    }
+
                     if (re.test(val)){ //enclose in double quotes if we have the delimiters
                         val = val.replace(/\"/g,'\"\"');
                         val = Ext.String.format("\"{0}\"",val);
                     }
+
                 }
                 data.push(val);
-            });
+            }, this);
             csvArray.push(data.join(delimiter));
-        });
+        }, this);
 
         return csvArray.join(rowDelimiter);
     },
