@@ -58,7 +58,10 @@ Ext.define("custom-grid-with-deep-export", {
         });
     },
     _addGridboard: function(store) {
-        this.down('#display_box').removeAll();
+
+        if (this.down('#display_box')){
+            this.down('#display_box').removeAll();
+        }
 
         var filters = this.getSetting('query') ? Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query')) : [];
         this.logger.log('_addGridboard', store);

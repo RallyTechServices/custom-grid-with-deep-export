@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Jun 29 2016 17:08:44 GMT-0600 (MDT) -->
+    <!--  Build Date: Thu Apr 13 2017 13:59:10 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Jun 29 2016 17:08:44 GMT-0600 (MDT)";
-        var CHECKSUM = 31945964448;
+        var APP_BUILD_DATE = "Thu Apr 13 2017 13:59:10 GMT-0600 (MDT)";
+        var CHECKSUM = 32677813024;
     </script>
     
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
@@ -207,7 +207,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
 
         columns = this._getAncestorTypeColumns(hierarchicalData[0]._type).concat(columns);
-        console.log('columns', columns);
+        this.logger.log('columns', columns);
 
         var csv = this._transformDataToDelimitedString(exportData, columns);
 
@@ -254,7 +254,9 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         var csvArray = [],
             delimiter = ",",
             rowDelimiter = "\r\n",
-            re = new RegExp(delimiter + '|\"|\r|\n','g');
+            re = new RegExp(delimiter + '|\"|\r|\n','g'),
+            reHTML = new RegExp('<\/?[^>]+>', 'g'),
+            reNbsp = new RegExp('&nbsp;','ig');
 
         var column_keys = _.map(columns, function(c){ return c.dataIndex; }),
             column_headers = _.pluck(columns, 'text');
@@ -266,15 +268,27 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             Ext.Array.each(column_keys, function(key){
                 var val = obj[key];
                 if (val){
+                    if (reHTML.test(val)){
+                        val = val.replace('<br>','\r\n');
+                        this.logger.log('html val', val);
+                        val = Ext.util.Format.htmlDecode(val);
+                        val = Ext.util.Format.stripTags(val);
+                        this.logger.log('stripped html val', val);
+                    }
+                    if (reNbsp.test(val)){
+                        val = val.replace(reNbsp,' ');
+                    }
+
                     if (re.test(val)){ //enclose in double quotes if we have the delimiters
                         val = val.replace(/\"/g,'\"\"');
                         val = Ext.String.format("\"{0}\"",val);
                     }
+
                 }
                 data.push(val);
-            });
+            }, this);
             csvArray.push(data.join(delimiter));
-        });
+        }, this);
 
         return csvArray.join(rowDelimiter);
     },
@@ -580,7 +594,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     _getChunks: function(parentRecords, countField, countFieldAttribute){
         var chunks = [],
             childCount = 0,
-            maxListSize = 25,
+            maxListSize = 100,
             childCountTarget = 200,
             idx = 0;
 
@@ -634,7 +648,8 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
                 config = {
                     model: type,
                     fetch: fetch,
-                    filters: Rally.data.wsapi.Filter.or(filters)
+                    filters: Rally.data.wsapi.Filter.or(filters),
+                    context: {project: null}
                 };
             promises.push(function(){ return this.fetchWsapiRecords(config); });
         });
@@ -644,18 +659,14 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     fetchWsapiRecords: function(config){
         var deferred = Ext.create('Deft.Deferred');
 
-        Ext.create('Rally.data.wsapi.Store',{
-                model: config.model,
-                fetch: config.fetch,
-                filters: config.filters,
-                compact: false,
-                limit: 'Infinity'
-            }).load({
+        config.compact = false;
+        config.limit = "Infinity";
+        config.allowPostGet = true;
+
+        Ext.create('Rally.data.wsapi.Store', config
+            ).load({
                 callback: function(records, operation){
                     if (operation.wasSuccessful()){
-                        var fids = _.map(records, function(r){
-                            return r.get('FormattedID')
-                        });
                         deferred.resolve(records);
                     } else {
                         deferred.reject('fetchWsapiRecords error: ' + operation.error.errors.join(','));
@@ -875,7 +886,10 @@ Ext.define("custom-grid-with-deep-export", {
         });
     },
     _addGridboard: function(store) {
-        this.down('#display_box').removeAll();
+
+        if (this.down('#display_box')){
+            this.down('#display_box').removeAll();
+        }
 
         var filters = this.getSetting('query') ? Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query')) : [];
         this.logger.log('_addGridboard', store);

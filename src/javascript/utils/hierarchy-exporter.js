@@ -29,7 +29,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
 
         columns = this._getAncestorTypeColumns(hierarchicalData[0]._type).concat(columns);
-        console.log('columns', columns);
+        this.logger.log('columns', columns);
 
         var csv = this._transformDataToDelimitedString(exportData, columns);
 
@@ -76,7 +76,9 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         var csvArray = [],
             delimiter = ",",
             rowDelimiter = "\r\n",
-            re = new RegExp(delimiter + '|\"|\r|\n','g');
+            re = new RegExp(delimiter + '|\"|\r|\n','g'),
+            reHTML = new RegExp('<\/?[^>]+>', 'g'),
+            reNbsp = new RegExp('&nbsp;','ig');
 
         var column_keys = _.map(columns, function(c){ return c.dataIndex; }),
             column_headers = _.pluck(columns, 'text');
@@ -88,15 +90,27 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             Ext.Array.each(column_keys, function(key){
                 var val = obj[key];
                 if (val){
+                    if (reHTML.test(val)){
+                        val = val.replace('<br>','\r\n');
+                        this.logger.log('html val', val);
+                        val = Ext.util.Format.htmlDecode(val);
+                        val = Ext.util.Format.stripTags(val);
+                        this.logger.log('stripped html val', val);
+                    }
+                    if (reNbsp.test(val)){
+                        val = val.replace(reNbsp,' ');
+                    }
+
                     if (re.test(val)){ //enclose in double quotes if we have the delimiters
                         val = val.replace(/\"/g,'\"\"');
                         val = Ext.String.format("\"{0}\"",val);
                     }
+
                 }
                 data.push(val);
-            });
+            }, this);
             csvArray.push(data.join(delimiter));
-        });
+        }, this);
 
         return csvArray.join(rowDelimiter);
     },
