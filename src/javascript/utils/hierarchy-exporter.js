@@ -195,6 +195,8 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                     if (data._tagsNameArray && data._tagsNameArray.length > 0) {
                         var names = _.pluck(data._tagsNameArray, 'Name');
                         rec[field] = names.join(',');
+                    } else if (data.FormattedID){
+                        rec[field] = data.FormattedID + ": " + data._refObjectName;
                     } else {
                         rec[field] = data._refObjectName;
                     }
