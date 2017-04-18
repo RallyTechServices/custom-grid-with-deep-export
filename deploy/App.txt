@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Apr 13 2017 13:59:10 GMT-0600 (MDT) -->
+    <!--  Build Date: Tue Apr 18 2017 16:47:13 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Apr 13 2017 13:59:10 GMT-0600 (MDT)";
-        var CHECKSUM = 32677813024;
+        var APP_BUILD_DATE = "Tue Apr 18 2017 16:47:13 GMT-0600 (MDT)";
+        var CHECKSUM = 33068707557;
     </script>
     
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
@@ -267,6 +267,11 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             var data = [];
             Ext.Array.each(column_keys, function(key){
                 var val = obj[key];
+                console.log('column-key', key, obj);
+                if (key === "Parent"){
+                    val = obj[key] || obj['PortfolioItem'];
+                }
+
                 if (val){
                     if (reHTML.test(val)){
                         val = val.replace('<br>','\r\n');
@@ -359,6 +364,11 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             var field = c.dataIndex || null;
             if (field){
                 var data = recData[field];
+
+                if (field === "Parent"){
+                    data = recData[field] || recData["PortfolioItem"];
+                }
+
                 if (Ext.isObject(data)){
                     if (data._tagsNameArray && data._tagsNameArray.length > 0) {
                         var names = _.pluck(data._tagsNameArray, 'Name');
