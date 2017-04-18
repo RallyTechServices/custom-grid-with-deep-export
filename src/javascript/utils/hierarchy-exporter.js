@@ -89,6 +89,11 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             var data = [];
             Ext.Array.each(column_keys, function(key){
                 var val = obj[key];
+                console.log('column-key', key, obj);
+                if (key === "Parent"){
+                    val = obj[key] || obj['PortfolioItem'];
+                }
+
                 if (val){
                     if (reHTML.test(val)){
                         val = val.replace('<br>','\r\n');
@@ -181,6 +186,11 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             var field = c.dataIndex || null;
             if (field){
                 var data = recData[field];
+
+                if (field === "Parent"){
+                    data = recData[field] || recData["PortfolioItem"];
+                }
+
                 if (Ext.isObject(data)){
                     if (data._tagsNameArray && data._tagsNameArray.length > 0) {
                         var names = _.pluck(data._tagsNameArray, 'Name');
