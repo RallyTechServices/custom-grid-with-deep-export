@@ -82,6 +82,10 @@ Ext.define("custom-grid-with-deep-export", {
                             modelNames: this.modelNames,
                             inlineFilterPanelConfig: {
                                 quickFilterPanelConfig: {
+                                    whiteListFields: [
+                                       'Tags',
+                                       'Milestones'
+                                    ],
                                     defaultFields: [
                                         'ArtifactSearch',
                                         'Owner',
@@ -277,12 +281,12 @@ Ext.define("custom-grid-with-deep-export", {
             }
         ];
     },
-    
+
     _launchInfo: function() {
         if ( this.about_dialog ) { this.about_dialog.destroy(); }
         this.about_dialog = Ext.create('Rally.technicalservices.InfoLink',{});
     },
-    
+
     isExternal: function(){
         return typeof(this.getAppId()) == 'undefined';
     },
