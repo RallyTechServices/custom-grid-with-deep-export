@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Apr 13 2017 13:59:10 GMT-0600 (MDT) -->
+    <!--  Build Date: Tue May 23 2017 15:16:51 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Apr 13 2017 13:59:10 GMT-0600 (MDT)";
-        var CHECKSUM = 32677813024;
+        var APP_BUILD_DATE = "Tue May 23 2017 15:16:51 GMT-0600 (MDT)";
+        var CHECKSUM = 33370645756;
     </script>
     
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
@@ -267,6 +267,11 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             var data = [];
             Ext.Array.each(column_keys, function(key){
                 var val = obj[key];
+                console.log('column-key', key, obj);
+                if (key === "Parent"){
+                    val = obj[key] || obj['PortfolioItem'];
+                }
+
                 if (val){
                     if (reHTML.test(val)){
                         val = val.replace('<br>','\r\n');
@@ -359,10 +364,17 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             var field = c.dataIndex || null;
             if (field){
                 var data = recData[field];
+
+                if (field === "Parent"){
+                    data = recData[field] || recData["PortfolioItem"];
+                }
+
                 if (Ext.isObject(data)){
                     if (data._tagsNameArray && data._tagsNameArray.length > 0) {
                         var names = _.pluck(data._tagsNameArray, 'Name');
                         rec[field] = names.join(',');
+                    } else if (data.FormattedID){
+                        rec[field] = data.FormattedID + ": " + data._refObjectName;
                     } else {
                         rec[field] = data._refObjectName;
                     }
@@ -748,8 +760,9 @@ Ext.override(Rally.ui.inlinefilter.PropertyFieldComboBox, {
      * @cfg {String[]} whiteListFields
      * field names that should be included from the filter row field combobox
      */
-    defaultWhiteListFields: ['Milestones']
+    defaultWhiteListFields: ['Milestones','Tags']
 });
+
 (function () {
     var Ext = window.Ext4 || window.Ext;
 
@@ -910,6 +923,10 @@ Ext.define("custom-grid-with-deep-export", {
                             modelNames: this.modelNames,
                             inlineFilterPanelConfig: {
                                 quickFilterPanelConfig: {
+                                    whiteListFields: [
+                                       'Tags',
+                                       'Milestones'
+                                    ],
                                     defaultFields: [
                                         'ArtifactSearch',
                                         'Owner',
@@ -1105,12 +1122,12 @@ Ext.define("custom-grid-with-deep-export", {
             }
         ];
     },
-    
+
     _launchInfo: function() {
         if ( this.about_dialog ) { this.about_dialog.destroy(); }
         this.about_dialog = Ext.create('Rally.technicalservices.InfoLink',{});
     },
-    
+
     isExternal: function(){
         return typeof(this.getAppId()) == 'undefined';
     },
