@@ -13,7 +13,6 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         this.fileName = config.fileName || "export.csv";
         this.columns = config.columns || [{dataIndex: 'FormattedID', text: 'ID'},{dataIndex: 'Name', text: 'Name'}];
         this.portfolioItemTypeObjects =  config.portfolioItemTypeObjects || [];
-
     },
     setRecords: function(type, records){
         this.records = (this.records || []).concat(records);
@@ -24,12 +23,12 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
 
         this.logger.log('export', this.records, this);
 
-        var columns = _.filter(this.columns, function(c){ return c.dataIndex !== "FormattedID"; }),
+        //var columns = _.filter(this.columns, function(c){ return c.dataIndex !== "FormattedID"; }),
+        var columns = this.columns,
             hierarchicalData = this._buildHierarchy(),
             exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
 
         columns = this._getAncestorTypeColumns(hierarchicalData[0]._type).concat(columns);
-        this.logger.log('columns', columns);
 
         var csv = this._transformDataToDelimitedString(exportData, columns);
 
@@ -53,10 +52,18 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         this.records = null;
 
         for (var key in objectHash){
+            /*
+             * guess at parent based on populated field.  it is
+             * possible for an item to have two parents (e.g., a defect
+             * might have a story and a test case related "above" it
+             * this will default to the first it finds
+             */
             var obj = objectHash[key],
                 parent = obj.Parent && obj.Parent.ObjectID ||
                          obj.PortfolioItem && obj.PortfolioItem.ObjectID ||
-                         obj.WorkProduct && obj.WorkProduct.ObjectID;
+                         obj.WorkProduct && obj.WorkProduct.ObjectID ||
+                         obj.Requirement && obj.Requirement.ObjectID ||
+                         obj.TestCase && obj.TestCase.ObjectID;
 
          //   if (obj._type === 'task') { console.log('obj',parent, obj._type, obj)};
             if (parent && objectHash[parent]){
@@ -89,7 +96,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             var data = [];
             Ext.Array.each(column_keys, function(key){
                 var val = obj[key];
-                console.log('column-key', key, obj);
+                //console.log('column-key', key, obj);
                 if (key === "Parent"){
                     val = obj[key] || obj['PortfolioItem'];
                 }
@@ -145,16 +152,26 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         var new_ancestors = Ext.clone(ancestors),
             me = this;
 
-        new_ancestors[record._type] = record.FormattedID;
+        if ( Ext.isEmpty(new_ancestors[record._type]) ) {
+            new_ancestors[record._type] = record.FormattedID;
+        }
 
         var children = record.loadedChildren;
         if (children && children.length > 0){
             _.each(children, function(c){
                 var row = this._getExportDataRow(c, columns, new_ancestors);
-                exportData.push(row);
                 me._addExportChildren(c, exportData, columns, new_ancestors);
+                // if this is a descendant of a story, set the field that
+                // represents the User Story column to be the first level
+                // level story
+                var child_type = row._type;
+                if ( !Ext.isEmpty(new_ancestors[child_type])) {
+                     row[child_type] = new_ancestors[child_type];
+                }
+                exportData.push(row);
             }, this);
         }
+
         return;
     },
     getTypePathDisplayName: function(modelName){
@@ -163,6 +180,12 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         }
         if (modelName.toLowerCase() === 'task'){
             return 'Task';
+        }
+        if (modelName.toLowerCase() === 'defect'){
+            return 'Defect';
+        }
+        if (modelName.toLowerCase() === 'testcase'){
+            return 'Test Case';
         }
 
         var displayName = '';
@@ -175,12 +198,12 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         return displayName;
     },
     _getExportDataRow: function(recData, columns, ancestors){
-
         var rec = Ext.clone(ancestors),
             type = recData._type; //obj.getData('type');
 
         rec[type] = recData.FormattedID;
         rec.type = this.getTypePathDisplayName(recData._type);
+        rec._type = recData._type;
 
         _.each(columns, function(c){
             var field = c.dataIndex || null;
@@ -207,6 +230,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                 }
             }
         });
+
         return rec;
     },
     _getAncestorTypeColumns: function(rootModel){
@@ -220,9 +244,6 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         });
 
         var columns = [{
-            dataIndex: 'task',
-            text: 'Task'
-        },{
             dataIndex: 'hierarchicalrequirement',
             text: 'User Story'
         }];

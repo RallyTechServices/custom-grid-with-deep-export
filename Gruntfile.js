@@ -91,14 +91,14 @@ module.exports = function(grunt) {
                 }
         },
         watch: {
-            files: ['test/fast/*-spec.js',config.js_files, config.css_files],
+            files: ['test/fast/**/*-spec.js',config.js_files, config.css_files],
             tasks: ['test-and-deploy']
         },
         jasmine: {
             fast: {
                 src: config.js_files,
                 options: {
-                    specs: 'test/fast/*-spec.js',
+                    specs: 'test/fast/**/*-spec.js',
                     helpers: 'test/fast/*Helper.js',
                     template: 'test/fast/custom.tmpl',
                     vendor:[

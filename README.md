@@ -2,8 +2,38 @@
 
 ![](screenshot.png)
 
+Note that as with other custom lists, the filter is only applied at the root level.
+
+Several export options are provided and change depending on the root record type
+chosen in Edit App Settings...
+
+When a portfolio item is selected as the root type:
+
+    * **Export Portfolio Items...** Exports only portfolio items in the portfolio item tree that have been displayed due to the filter at the root level item. Portfolio items of every available level from the root level down are exported.
+
+    * **Export Portfolio Items and User Stories...** Only portfolio items and stories in the tree will be exported.
+
+    * **Export Portfolio Items, User Stories and Tasks...** These item types will be exported.
+
+    * **Export Portfolio Items and Child Items...** Portfolio items, stories, tasks, defects, and test cases will be exported.  Test cases that are children of defects (that are children of stories) will be exported, as will defects that are children of test cases that are children of stories.  If a defect is a child of a story and is also a child of a test case that is displayed, the defect may not appear where you expect.
+
+
+When user story is selected as the root type:
+
+    * **Export User Stories...** Only stories in the tree will be exported.
+
+    * **Export User Stories and Tasks...** These item types will be exported.
+
+    * **Export User Stories and Child Items...** Stories, tasks, defects, and test cases will be exported.  Test cases that are children of defects (that are children of stories) will be exported, as will defects that are children of test cases that are children of stories.  If a defect is a child of a story and is also a child of a test case that is displayed, the defect may not appear where you expect.
+
 ### Caveats
-If an item has a parent that is out of scope, then that item's relationship will not be seen.
+* If an item has a parent that is out of scope, then that item's relationship will not be seen.
+
+* When a portfolio item is chosen as the root level type, the output will contain a column for each portfolio item record type.  For lower level items, these columns will be populated with the FormattedID of the ancestor portfolio item that it is associated with.  
+
+* The output will contain a column called User Story that represents the top level user story that the item has as an ancestor.  If the story hierarchy has multiple levels, the lower level items will continue to put the top level user story ID into this field.  Use the fields of the lower level record types to display the closer related record.  For example, if a task is on a grandchild story, the grandparent story will show in the User Story column.  To show the story the task belongs to directly, choose the WorkProduct field to export.
+
+* For portfolio items and stories, it is possible that the associated ancestor column (e.g., User Story) will have the current record's ID if that record is the appropriate level.  
 
 ## Development Notes
 
