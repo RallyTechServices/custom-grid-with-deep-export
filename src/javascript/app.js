@@ -4,7 +4,6 @@ Ext.define("custom-grid-with-deep-export", {
     logger: new Rally.technicalservices.Logger(),
     defaults: { margin: 10 },
     items: [
-        {xtype:'container',itemId:'message_box',tpl:'Hello, <tpl>{_refObjectName}</tpl>'},
         {xtype:'container',itemId:'display_box'}
     ],
 
@@ -134,12 +133,17 @@ Ext.define("custom-grid-with-deep-export", {
                 text: 'Export User Stories...',
                 handler: this._export,
                 scope: this,
-                childModels: []
+                childModels: ['hierarchicalrequirement']
             },{
                 text: 'Export User Stories and Tasks...',
                 handler: this._export,
                 scope: this,
-                childModels: ['task']
+                childModels: ['hierarchicalrequirement','task']
+            },{
+                text: 'Export User Stories and Child Items...',
+                handler: this._export,
+                scope: this,
+                childModels: ['hierarchicalrequirement','task','defect','testcase']
             }];
         }
 
@@ -169,6 +173,11 @@ Ext.define("custom-grid-with-deep-export", {
             handler: this._export,
             scope: this,
             childModels: childModels.concat(['hierarchicalrequirement','task'])
+        },{
+            text: 'Export Portfolio Items and Child Items...',
+            handler: this._export,
+            scope: this,
+            childModels: childModels.concat(['hierarchicalrequirement','defect','testcase'])
         }];
     },
     getPortfolioItemTypeNames: function(){

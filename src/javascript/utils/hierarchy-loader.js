@@ -39,7 +39,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         }
 
         var fns = [];
-        for (var i = 0; i< this.loadChildModels.length + 2; i++){
+        for (var i = 0; i< this.loadChildModels.length + 4; i++){
             fns.push(this.fetchNextLevel);
         }
 
@@ -62,9 +62,10 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
 
         args = _.flatten(args);
         this.logger.log('fetchNextLevel flattened args', args, args.length);
-        if (args.length >  0) {
 
+        if (args.length >  0 && Ext.isFunction(args[0].get)) {
             var type = args[0].get('_type');
+            var types = Ext.Array.unique( Ext.Array.map(args, function(arg){ return arg.get('_type'); }) );
 
             this.fireEvent('hierarchyloadartifactsloaded', type, args);
 
@@ -77,11 +78,14 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
             if (portfolioItemOrdinal > 0 && Ext.Array.contains(this.loadChildModels, portfolioItemTypePaths[portfolioItemOrdinal - 1])) {
                 return this.fetchPortfolioItems(portfolioItemTypePaths[portfolioItemOrdinal - 1], args);
             }
-            if (type === this.storyModelName && Ext.Array.contains(this.loadChildModels, this.taskModelName)){
-                return this.fetchTasks(args);
-            }
+
+            return this.fetchChildrenFromMultipleTypes(types,args);
+            // if (type === this.storyModelName ) {
+                // this.getAllowedChildTypes(type);
+                // return this.fetchTasks(args);
+            //}
         }
-        return Promise.resolve([]);
+        return [];
     },
 
     fetchRoot: function(){
@@ -104,6 +108,8 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         return this.fetchChunks(type, fetch, chunks, "Parent.ObjectID", Ext.String.format("Please Wait... Loading Children for {0} Portfolio Items", parentRecords.length));
     },
     _getChunks: function(parentRecords, countField, countFieldAttribute){
+        this.logger.log("_getChunks", parentRecords, countField, countFieldAttribute);
+
         var chunks = [],
             childCount = 0,
             maxListSize = 100,
@@ -130,7 +136,6 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         return chunks;
     },
     fetchUserStories: function(parentRecords){
-
         var type = this.storyModelName,
             fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
             chunks = this._getChunks(parentRecords, 'LeafStoryCount'),
@@ -138,18 +143,64 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
 
         return this.fetchChunks(type, fetch, chunks, featureParentName, Ext.String.format("Please Wait... Loading User Stories for {0} Portfolio Items", parentRecords.length));
     },
-    fetchTasks: function(parentRecords){
-        var type = this.taskModelName,
-            fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
-            chunks = this._getChunks(parentRecords, 'Tasks', 'Count');
 
-        return this.fetchChunks(type, fetch, chunks, "WorkProduct.ObjectID", Ext.String.format("Please Wait... Loading Tasks for {0} User Stories", parentRecords.length));
+    fetchChildrenFromMultipleTypes: function(types, parentRecords) {
+        this.logger.log('fetchChildrenFromMultipleTypes', types, parentRecords);
+
+        var promises = [];
+        Ext.Array.map(types, function(type){
+            child_types = this.getAllowedChildTypes(type);
+            if ( child_types.length > 0 ) {
+                var parents = Ext.Array.filter(parentRecords, function(parent){
+                    return ( parent.get('_type') == type );
+                },this);
+                promises.push(function() {
+                    return this.fetchChildrenOfMultipleTypes(parents);
+                });
+            }
+        },this);
+
+        if ( promises.length === 0 ) { return []; }
+        return Deft.Chain.sequence(promises,this);
     },
-    fetchChunks: function(type, fetch, chunks, chunkProperty, statusString){
-        this.logger.log('fetchChunks',fetch,  chunkProperty, chunks);
+    fetchChildrenOfMultipleTypes: function(parentRecords){
+        var parent_type = parentRecords[0].get('_type');
+        var child_types = this.getAllowedChildTypes(parent_type);
+        this.logger.log('fetchChildrenOfMultipleTypes', child_types,parentRecords);
+        var promises = Ext.Array.map(child_types, function(type){
+            return function() { return this.fetchChildren(type,parentRecords); }
+        },this);
 
-        if (chunks && chunks.length > 0 && chunks[0].length===0){
-            return Promise.resolve([]);
+        return Deft.Chain.sequence(promises,this);
+    },
+
+    fetchChildren: function(type,parentRecords) {
+        this.logger.log("fetchChildren", type, parentRecords);
+        var fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
+            parentType = parentRecords[0].get('_type'),
+            childField = this.getChildFieldFor(parentType, type),
+            chunks = this._getChunks(parentRecords, childField, 'Count'),
+            parentField = this.getParentFieldFor(type,parentType);
+
+        return this.fetchChunks(type, fetch, chunks, parentField + ".ObjectID",
+            Ext.String.format("Please Wait... Loading {0} for {1} items", childField, parentRecords.length));
+    },
+
+    // fetchTasks: function(parentRecords){
+    //     var type = this.taskModelName,
+    //         fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
+    //         chunks = this._getChunks(parentRecords, 'Tasks', 'Count');
+    //
+    //     return this.fetchChunks(type, fetch, chunks, "WorkProduct.ObjectID", Ext.String.format("Please Wait... Loading Tasks for {0} User Stories", parentRecords.length));
+    // },
+    fetchChunks: function(type, fetch, chunks, chunkProperty, statusString){
+        this.logger.log('fetchChunks',fetch,chunkProperty, chunks);
+
+        if ( !chunks || chunks.length === 0 ) {
+            return [];
+        }
+        if (chunks[0].length===0){
+            return [];
         }
 
         this.fireEvent('statusupdate', statusString);
@@ -188,19 +239,75 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         });
         return deferred;
     },
+
+    getChildFieldFor: function(parent_type, child_type) {
+        if ( parent_type.toLowerCase() === "hierarchicalrequirement" || parent_type.toLowerCase() === "userstory" ) {
+            if ( child_type.toLowerCase() == "task" ) { return 'Tasks'; }
+            if ( child_type.toLowerCase() == "defect" ) { return 'Defects'; }
+            if ( child_type.toLowerCase() == "testcase" ) { return 'TestCases'; }
+            if ( child_type.toLowerCase() == "hierarchicalrequirement" ) { return 'Children'; }
+        }
+        if ( parent_type.toLowerCase() === "defect" ) {
+            if ( child_type.toLowerCase() == "task" ) { return 'Tasks'; }
+            if ( child_type.toLowerCase() == "testcase" ) { return 'TestCases'; }
+        }
+        if ( parent_type.toLowerCase() === "testcase" ) {
+            if ( child_type.toLowerCase() == "defect" ) { return 'Defects'; }
+        }
+        if (/portfolioitem/.test(parent_type.toLowerCase())) {
+            if ( child_type.toLowerCase() == "hierarchicalrequirement" ) { return 'UserStories'; }
+        }
+        return null;
+    },
+
+    getParentFieldFor: function(child_type,parent_type) {
+        if ( parent_type.toLowerCase() === "hierarchicalrequirement" || parent_type.toLowerCase() === "userstory" ) {
+            if ( child_type.toLowerCase() == "task" ) { return 'WorkProduct'; }
+            if ( child_type.toLowerCase() == "defect" ) { return 'Requirement'; }
+            if ( child_type.toLowerCase() == "testcase" ) { return 'WorkProduct'; }
+            if ( child_type.toLowerCase() == "hierarchicalrequirement" ) { return 'Parent'; }
+        }
+        if ( parent_type.toLowerCase() === "defect" ) {
+            if ( child_type.toLowerCase() == "task" ) { return 'WorkProduct'; }
+            if ( child_type.toLowerCase() == "testcase" ) { return 'WorkProduct'; }
+        }
+        if ( parent_type.toLowerCase() === "testcase" ) {
+            if ( child_type.toLowerCase() == "defect" ) { return 'TestCase'; }
+        }
+        if (/portfolioitem/.test(parent_type.toLowerCase())) {
+            if ( child_type.toLowerCase() == "hierarchicalrequirement" ) { return 'PortfolioItem'; }
+        }
+        return null;
+
+    },
+    getAllowedChildTypes: function(type) {
+        var allowed_types = [];
+        var given_types = this.loadChildModels;
+
+        if (type.toLowerCase() === this.storyModelName.toLowerCase() ) {
+            allowed_types = ['task','defect','testcase',this.storyModelName.toLowerCase()];
+        }
+        if (type.toLowerCase() === 'defect' ) {
+            allowed_types = ['task','testcase'];
+        }
+        if (type.toLowerCase() === 'testcase' ) {
+            allowed_types = ['defect'];
+        }
+
+        var types_in_both = Ext.Array.intersect(allowed_types,given_types);
+        return types_in_both;
+    },
+
     getRequiredFetchFields: function(type){
         if (/^portfolioitem/.test(type.toLowerCase())){
-            return ['Children', 'LeafStoryCount','Parent','ObjectID'];
+            return ['Children', 'LeafStoryCount','Parent','ObjectID','UserStories'];
         }
 
         if (type.toLowerCase() === this.storyModelName){
-            return ['FormattedID','Children','Tasks','Parent','PortfolioItem','HasParent','ObjectID'];
+            return ['FormattedID','Children','Tasks','Parent','PortfolioItem','HasParent','ObjectID','TestCases','Defects'];
         }
 
-        if (type.toLowerCase() === this.taskModelName){
-            return ['WorkProduct','ObjectID'];
-        }
-        return [];
+        return ['ObjectID','WorkProduct','Defects','Tasks','TestCases','Requirement','TestCase','FormattedID'];
     },
     throttle: function (fns, maxParallelCalls, scope) {
 

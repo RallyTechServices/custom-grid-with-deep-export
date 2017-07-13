@@ -1,3 +1,4 @@
+.grunt/
 grunt/
 /node_modules/
 auth.json
