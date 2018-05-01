@@ -222,15 +222,18 @@ Ext.define("custom-grid-with-deep-export", {
         }
         return fetch;
     },
+    _getExportSorters: function(){
+        return this.down('rallygridboard').getGridOrBoard().getStore().getSorters();
+    },
     _export: function(args){
-
         var columns = this._getExportColumns(),
             fetch = this._getExportFetch(),
             filters = this._getExportFilters(),
             modelName = this.modelNames[0],
-            childModels = args.childModels;
+            childModels = args.childModels,
+            sorters = this._getExportSorters();
 
-        this.logger.log('_export', fetch, args, columns, filters.toString(), childModels);
+        this.logger.log('_export', fetch, args, columns, filters.toString(), childModels, sorters);
 
         var exporter = Ext.create('Rally.technicalservices.HierarchyExporter', {
             fileName: 'hierarchy-export.csv',
@@ -246,6 +249,7 @@ Ext.define("custom-grid-with-deep-export", {
             model: modelName,
             fetch: fetch,
             filters: filters,
+            sorters: sorters,
             loadChildModels: childModels,
             portfolioItemTypes: this.portfolioItemTypes,
             context: this.getContext().getDataContext()
