@@ -51,6 +51,7 @@ Ext.define("custom-grid-with-deep-export", {
         Ext.create('Rally.data.wsapi.TreeStoreBuilder').build({
             models: this.modelNames,
             enableHierarchy: true,
+            remoteSort: true,
             fetch: fetch
         }).then({
             success: this._addGridboard,
