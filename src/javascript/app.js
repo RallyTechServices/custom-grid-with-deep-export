@@ -29,6 +29,11 @@ Ext.define("custom-grid-with-deep-export", {
     allowExpansionStateToBeSaved: false,
     enableAddNew: true,
 
+    onTimeboxScopeChange: function(newTimeboxScope) {
+        this.callParent(arguments);
+        this._buildStore();
+    },
+
     launch: function () {
         this.fetchPortfolioItemTypes().then({
             success: function(portfolioItemTypes){
@@ -64,7 +69,11 @@ Ext.define("custom-grid-with-deep-export", {
             this.down('#display_box').removeAll();
         }
 
-        var filters = this.getSetting('query') ? Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query')) : [];
+        var filters = this.getSetting('query') ? [Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query'))] : [];
+        var timeboxScope = this.getContext().getTimeboxScope();
+        if (timeboxScope && timeboxScope.isApplicable(store.model)) {
+            filters.push(timeboxScope.getQueryFilter());
+        }
         this.logger.log('_addGridboard', store);
 
 
@@ -207,12 +216,14 @@ Ext.define("custom-grid-with-deep-export", {
         if (grid.currentCustomFilter && grid.currentCustomFilter.filters){
             filters = grid.currentCustomFilter.filters;
         }
-        if (query){
-            if (filters && filters.length > 0){
-                return filters.and(filters, Rally.data.wsapi.Filter.fromQueryString(query));
-            } else {
-                return Rally.data.wsapi.Filter.fromQueryString(query);
-            }
+
+        if (query) {
+            filters.push(Rally.data.wsapi.Filter.fromQueryString(query));
+        }
+
+        var timeboxScope = this.getContext().getTimeboxScope();
+        if (timeboxScope && timeboxScope.isApplicable(grid.getGridOrBoard().store.model)) {
+            filters.push(timeboxScope.getQueryFilter());
         }
         return filters;
     },
