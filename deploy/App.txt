@@ -3,11 +3,11 @@
 <head>
     <title>Custom Grid with Deep Export</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Fri May 18 2018 10:21:38 GMT-0600 (MDT) -->
+    <!--  Build Date: Wed Aug 15 2018 12:11:02 GMT-0600 (MDT) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Fri May 18 2018 10:21:38 GMT-0600 (MDT)";
-        var CHECKSUM = 34251012870;
+        var APP_BUILD_DATE = "Wed Aug 15 2018 12:11:02 GMT-0600 (MDT)";
+        var CHECKSUM = 35081721478;
     </script>
     
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
@@ -877,6 +877,11 @@ Ext.define("custom-grid-with-deep-export", {
     allowExpansionStateToBeSaved: false,
     enableAddNew: true,
 
+    onTimeboxScopeChange: function(newTimeboxScope) {
+        this.callParent(arguments);
+        this._buildStore();
+    },
+
     launch: function () {
         this.fetchPortfolioItemTypes().then({
             success: function(portfolioItemTypes){
@@ -912,7 +917,11 @@ Ext.define("custom-grid-with-deep-export", {
             this.down('#display_box').removeAll();
         }
 
-        var filters = this.getSetting('query') ? Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query')) : [];
+        var filters = this.getSetting('query') ? [Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query'))] : [];
+        var timeboxScope = this.getContext().getTimeboxScope();
+        if (timeboxScope && timeboxScope.isApplicable(store.model)) {
+            filters.push(timeboxScope.getQueryFilter());
+        }
         this.logger.log('_addGridboard', store);
 
 
@@ -1055,12 +1064,14 @@ Ext.define("custom-grid-with-deep-export", {
         if (grid.currentCustomFilter && grid.currentCustomFilter.filters){
             filters = grid.currentCustomFilter.filters;
         }
-        if (query){
-            if (filters && filters.length > 0){
-                return filters.and(filters, Rally.data.wsapi.Filter.fromQueryString(query));
-            } else {
-                return Rally.data.wsapi.Filter.fromQueryString(query);
-            }
+
+        if (query) {
+            filters.push(Rally.data.wsapi.Filter.fromQueryString(query));
+        }
+
+        var timeboxScope = this.getContext().getTimeboxScope();
+        if (timeboxScope && timeboxScope.isApplicable(grid.getGridOrBoard().store.model)) {
+            filters.push(timeboxScope.getQueryFilter());
         }
         return filters;
     },
