@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>custom-grid-with-deep-export-1.2.1-1</title>
+    <title>custom-grid-with-deep-export-1.2.1</title>
     <!--  (c) 2017 CA Technologies.  All Rights Reserved. -->
-    <!--  Build Date: Tue Sep 11 2018 20:19:42 GMT+0000 (UTC) -->
+    <!--  Build Date: Tue Sep 11 2018 20:23:10 GMT+0000 (UTC) -->
 
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Tue Sep 11 2018 20:19:42 GMT+0000 (UTC)";
-        var CHECKSUM = 28532394763;
+        var APP_BUILD_DATE = "Tue Sep 11 2018 20:23:10 GMT+0000 (UTC)";
+        var CHECKSUM = 28527824268;
     </script>
 
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
