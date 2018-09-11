@@ -28,6 +28,11 @@ Ext.define("custom-grid-with-deep-export", {
     allowExpansionStateToBeSaved: false,
     enableAddNew: true,
 
+    onTimeboxScopeChange: function(newTimeboxScope) {
+        this.callParent(arguments);
+        this._buildStore();
+    },
+
     launch: function () {
         this.fetchPortfolioItemTypes().then({
             success: function(portfolioItemTypes){
@@ -50,6 +55,7 @@ Ext.define("custom-grid-with-deep-export", {
         Ext.create('Rally.data.wsapi.TreeStoreBuilder').build({
             models: this.modelNames,
             enableHierarchy: true,
+            remoteSort: true,
             fetch: fetch
         }).then({
             success: this._addGridboard,
@@ -62,7 +68,11 @@ Ext.define("custom-grid-with-deep-export", {
             this.down('#display_box').removeAll();
         }
 
-        var filters = this.getSetting('query') ? Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query')) : [];
+        var filters = this.getSetting('query') ? [Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query'))] : [];
+        var timeboxScope = this.getContext().getTimeboxScope();
+        if (timeboxScope && timeboxScope.isApplicable(store.model)) {
+            filters.push(timeboxScope.getQueryFilter());
+        }
         this.logger.log('_addGridboard', store);
 
 
@@ -215,12 +225,14 @@ Ext.define("custom-grid-with-deep-export", {
         if (grid.currentCustomFilter && grid.currentCustomFilter.filters){
             filters = grid.currentCustomFilter.filters;
         }
-        if (query){
-            if (filters && filters.length > 0){
-                return filters.and(filters, Rally.data.wsapi.Filter.fromQueryString(query));
-            } else {
-                return Rally.data.wsapi.Filter.fromQueryString(query);
-            }
+
+        if (query) {
+            filters.push(Rally.data.wsapi.Filter.fromQueryString(query));
+        }
+
+        var timeboxScope = this.getContext().getTimeboxScope();
+        if (timeboxScope && timeboxScope.isApplicable(grid.getGridOrBoard().store.model)) {
+            filters.push(timeboxScope.getQueryFilter());
         }
         return filters;
     },
@@ -231,15 +243,18 @@ Ext.define("custom-grid-with-deep-export", {
         }
         return fetch;
     },
+    _getExportSorters: function(){
+        return this.down('rallygridboard').getGridOrBoard().getStore().getSorters();
+    },
     _export: function(args){
-
         var columns = this._getExportColumns(),
             fetch = this._getExportFetch(),
             filters = this._getExportFilters(),
             modelName = this.modelNames[0],
-            childModels = args.childModels;
+            childModels = args.childModels,
+            sorters = this._getExportSorters();
 
-        this.logger.log('_export', fetch, args, columns, filters.toString(), childModels);
+        this.logger.log('_export', fetch, args, columns, filters.toString(), childModels, sorters);
 
         var exporter = Ext.create('Rally.technicalservices.HierarchyExporter', {
             fileName: 'hierarchy-export.csv',
@@ -255,6 +270,7 @@ Ext.define("custom-grid-with-deep-export", {
             model: modelName,
             fetch: fetch,
             filters: filters,
+            sorters: sorters,
             loadChildModels: childModels,
             portfolioItemTypes: this.portfolioItemTypes,
             context: this.getContext().getDataContext()
