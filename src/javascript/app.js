@@ -128,6 +128,11 @@ Ext.define("custom-grid-with-deep-export", {
                         buttonConfig: {
                             iconCls: 'icon-export'
                         }
+                    },
+                    {
+                        ptype: 'rallygridboardsharedviewcontrol',
+                        stateful: true,
+                        stateId: this.getContext().getScopedStateId('shared-views')
                     }
                 ],
                 cardBoardConfig: {
