@@ -86,6 +86,7 @@ Ext.define("custom-grid-with-deep-export", {
         if (this.searchAllProjects()) {
             dataContext.project = null;
         }
+        var summaryRowFeature = Ext.create('Rally.ui.grid.feature.SummaryRow');
         this.gridboard = this.down('#display_box').add({
                 xtype: 'rallygridboard',
                 context: context,
@@ -118,9 +119,9 @@ Ext.define("custom-grid-with-deep-export", {
                     {
                         ptype: 'rallygridboardfieldpicker',
                         headerPosition: 'left',
-                        modelNames: this.modelNames
-                        //stateful: true,
-                        //stateId: this.getContext().getScopedStateId('columns-example')
+                        modelNames: this.modelNames,
+                        stateful: true,
+                        stateId: this.getContext().getScopedStateId('field-picker')
                     },
                     {
                         ptype: 'rallygridboardactionsmenu',
@@ -145,8 +146,25 @@ Ext.define("custom-grid-with-deep-export", {
                         context: dataContext
                     },
                     columnCfgs: [
-                        'Name'
-                    ]
+                        'Name',
+                        {
+                            dataIndex: 'PlanEstimate',
+                            summaryType: 'sum'
+                        },
+                        {
+                            dataIndex: 'TaskRemainingTotal',
+                            summaryType: 'sum'
+                        },
+                        {
+                            dataIndex: 'ToDo',
+                            summaryType: 'sum'
+                        },
+                        {
+                            dataIndex: 'TaskEstimateTotal',
+                            summaryType: 'sum'
+                        }
+                    ],
+                    features: [summaryRowFeature]
                 },
                 height: this.getHeight()
         });
