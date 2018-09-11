@@ -26,6 +26,15 @@ When user story is selected as the root type:
 
     * **Export User Stories and Child Items...** Stories, tasks, defects, and test cases will be exported.  Test cases that are children of defects (that are children of stories) will be exported, as will defects that are children of test cases that are children of stories.  If a defect is a child of a story and is also a child of a test case that is displayed, the defect may not appear where you expect.
 
+If this app is on a Timebox Scoped page, then the appropriate timebox filter
+will be applied if the Timebox is valid for the queried model.  If the Timebox
+is not valid for the selected model, then the Timebox scope will be ignored.
+
+If the page is scoped to a Milestone Timebox, there is an additional setting
+to allow the user to respect or ignore the global project setting. This is
+useful when Portfolio Items associated with a specific Milestone are not
+constrained to a specific subset of the Project Hierarchy tree.
+
 ### Caveats
 * If an item has a parent that is out of scope, then that item's relationship will not be seen.
 
