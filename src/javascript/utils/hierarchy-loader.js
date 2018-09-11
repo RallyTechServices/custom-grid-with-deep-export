@@ -97,7 +97,8 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
             model: this.model,
             fetch: fetch,
             filters: this.filters,
-            sorters: this.sorters
+            sorters: this.sorters,
+            context: this.context
         };
         this.logger.log('fetchRoot config', config);
 

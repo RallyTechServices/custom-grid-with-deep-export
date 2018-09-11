@@ -22,7 +22,7 @@
             'Rally.ui.CheckboxField'
         ],
 
-        getFields: function (context) {
+        getFields: function (config) {
 
             var type_filters = Rally.data.wsapi.Filter.or([
                 {property: 'TypePath', value: 'HierarchicalRequirement'},
@@ -31,12 +31,22 @@
 
             return [
                 {
+                  id:'searchAllProjects',
+                  name:'searchAllProjects',
+                  fieldLabel: 'Scope Across Workspace',
+                  labelAlign: 'left',
+                  xtype:'rallycheckboxfield',
+                  labelWidth: 150,
+                  margin: 10,
+                  hidden: !config.showSearchAllProjects
+                },
+                {
                     name: 'type',
                     xtype: 'rallycombobox',
                     allowBlank: false,
                     autoSelect: false,
                     shouldRespondToScopeChange: true,
-                    context: context,
+                    context: config.context,
                     initialValue: 'HierarchicalRequirement',
                     storeConfig: {
                         model: Ext.identityFn('TypeDefinition'),
