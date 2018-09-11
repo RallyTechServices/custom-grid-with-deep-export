@@ -12,6 +12,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
     filters: undefined,
     fetch: undefined,
     childModels: undefined,
+    sorters: undefined,
 
     maxParallelCalls: 6,
 
@@ -22,6 +23,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         this.fetch = config.fetch || [];
         this.filters = config.filters || [];
         this.loadChildModels = config.loadChildModels || [];
+        this.sorters = config.sorters || [];
     },
     load: function(){
 
@@ -94,7 +96,8 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         var config = {
             model: this.model,
             fetch: fetch,
-            filters: this.filters
+            filters: this.filters,
+            sorters: this.sorters
         };
         this.logger.log('fetchRoot config', config);
 
@@ -211,6 +214,10 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
                 config = {
                     model: type,
                     fetch: fetch,
+                    sorters: [
+                        { property: 'TaskIndex', direction: 'ASC'},
+                        { property: 'DragAndDropRank', direction: 'ASC'}
+                    ],
                     filters: Rally.data.wsapi.Filter.or(filters),
                     context: {project: null}
                 };
