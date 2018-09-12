@@ -14,7 +14,7 @@ Ext.define("custom-grid-with-deep-export", {
             showControls: true,
             type: 'HierarchicalRequirement',
             pageSize: 50,
-            searchAllProjects: [{checked: false}],
+            searchAllProjects: false,
         }
     },
 
