@@ -244,7 +244,7 @@ module.exports = function(grunt) {
             var payload = {
                 oid: panel_oid,
                 settings: JSON.stringify({
-                    "title": config.name,
+                    "title": pkg.name,
                     "project": null,
                     "content": html,
                     "autoResize": true
@@ -319,7 +319,7 @@ module.exports = function(grunt) {
             };
 
             var payload = {
-                name: "*" + config.name,
+                name: "*" + pkg.name,
                 editorMode: 'create',
                 pid: 'myhome',
                 oid: 6440917,

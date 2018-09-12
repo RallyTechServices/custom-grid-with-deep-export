@@ -1,6 +1,6 @@
 {
   "name": "custom-grid-with-deep-export",
-  "version": "1.2.1-3",
+  "version": "1.2.1",
   "scripts": {
     "debug": "grunt debug",
     "debug:watch": "nodemon --exec grunt debug",
