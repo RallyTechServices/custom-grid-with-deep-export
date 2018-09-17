@@ -2,10 +2,10 @@ Ext.define("custom-grid-with-deep-export", {
     extend: 'Rally.app.App',
     componentCls: 'app',
     logger: new Rally.technicalservices.Logger(),
-    defaults: { margin: 10 },
-    items: [
-        {xtype:'container',itemId:'display_box'}
-    ],
+    layout: {
+        type: 'vbox',
+        align: 'stretch'
+    },
 
     config: {
         defaultSettings: {
@@ -70,9 +70,7 @@ Ext.define("custom-grid-with-deep-export", {
     },
     _addGridboard: function(store) {
 
-        if (this.down('#display_box')){
-            this.down('#display_box').removeAll();
-        }
+        this.removeAll();
 
         var filters = this.getSetting('query') ? [Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query'))] : [];
         var timeboxScope = this.getContext().getTimeboxScope();
@@ -87,8 +85,9 @@ Ext.define("custom-grid-with-deep-export", {
             dataContext.project = null;
         }
         var summaryRowFeature = Ext.create('Rally.ui.grid.feature.SummaryRow');
-        this.gridboard = this.down('#display_box').add({
+        this.gridboard = this.add({
                 xtype: 'rallygridboard',
+                flex: 1,
                 context: context,
                 modelNames: this.modelNames,
                 toggleState: 'grid',
@@ -165,8 +164,7 @@ Ext.define("custom-grid-with-deep-export", {
                         }
                     ],
                     features: [summaryRowFeature]
-                },
-                height: this.getHeight()
+                }
         });
     },
     _getExportMenuItems: function(){
