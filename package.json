@@ -25,7 +25,7 @@
   },
   "nodemonConfig": {
     "watch": [
-      "src/*", "templates/*"
+      "src/*", "templates/*", "*.json"
     ],
     "verbose": true
   }

@@ -9,6 +9,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
 
     constructor: function (config) {
         this.mixins.observable.constructor.call(this, config);
+        this.modelName = config.modelName;
         this.records = [];
         this.fileName = config.fileName || "export.csv";
         this.columns = config.columns || [{dataIndex: 'FormattedID', text: 'ID'},{dataIndex: 'Name', text: 'Name'}];
@@ -28,7 +29,11 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             hierarchicalData = this._buildHierarchy(),
             exportData = this._getExportableHierarchicalData(hierarchicalData,columns);
 
-        columns = this._getAncestorTypeColumns(hierarchicalData[0]._type).concat(columns);
+        var ancestorType = this.modelName.toLowerCase();
+        if ( hierarchicalData.length > 0 ) {
+            ancestorType = hierarchicalData[0]._type;
+        }
+        columns = this._getAncestorTypeColumns(ancestorType).concat(columns);
 
         var csv = this._transformDataToDelimitedString(exportData, columns);
 
@@ -234,29 +239,33 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         return rec;
     },
     _getAncestorTypeColumns: function(rootModel){
-        var piTypes = this.portfolioItemTypeObjects,
-            piIdx = -1;
-
-        Ext.Array.each(piTypes, function(piObj, idx){
-            if (piObj.typePath.toLowerCase() === rootModel.toLowerCase()){
-                piIdx = idx;
-            }
-        });
-
-        var columns = [{
-            dataIndex: 'hierarchicalrequirement',
-            text: 'User Story'
-        }];
-
-        if (piIdx >= 0){
-            columns = columns.concat(Ext.Array.map(piTypes.slice(0,piIdx+1), function(piObj) { return { dataIndex: piObj.typePath.toLowerCase(), text: piObj.name };} ));
-            columns.push({
-                dataIndex: 'type',
-                text: 'Artifact Type'
+        var modelName = rootModel.toLowerCase();
+        var columns = [];
+        if ( modelName == 'hierarchicalrequirement' || modelName.startsWith('portfolioitem') ) {
+            var piTypes = this.portfolioItemTypeObjects,
+                piIdx = -1;
+    
+            Ext.Array.each(piTypes, function(piObj, idx){
+                if (piObj.typePath.toLowerCase() === rootModel.toLowerCase()){
+                    piIdx = idx;
+                }
             });
-
+    
+            columns.push({
+                dataIndex: 'hierarchicalrequirement',
+                text: 'User Story'
+            });
+    
+            if (piIdx >= 0){
+                columns = columns.concat(Ext.Array.map(piTypes.slice(0,piIdx+1), function(piObj) { return { dataIndex: piObj.typePath.toLowerCase(), text: piObj.name };} ));
+                columns.push({
+                    dataIndex: 'type',
+                    text: 'Artifact Type'
+                });
+    
+            }
+            columns.reverse();
         }
-        columns.reverse();
         return columns;
     },
     saveCSVToFile:function(csv,file_name,type_object){
