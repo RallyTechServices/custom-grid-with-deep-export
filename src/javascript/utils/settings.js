@@ -50,7 +50,8 @@
                         model: Ext.identityFn('TypeDefinition'),
                         sorters: [{ property: 'DisplayName' }],
                         fetch: ['DisplayName', 'ElementName', 'TypePath', 'Parent', 'UserListable'],
-                        filters: type_filters,
+                        //filters: type_filters,
+                        filters: [{ property: 'UserListable', value: true }],
                         autoLoad: false,
                         remoteSort: false,
                         remoteFilter: true

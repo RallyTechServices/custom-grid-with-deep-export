@@ -168,10 +168,11 @@ Ext.define("custom-grid-with-deep-export", {
         });
     },
     _getExportMenuItems: function(){
+        var result = [];
         this.logger.log('_getExportMenuItems', this.modelNames[0]);
-
-        if (this.modelNames[0].toLowerCase() === 'hierarchicalrequirement'){
-            return [{
+        var currentModel = this.modelNames[0].toLowerCase();
+        if (currentModel === 'hierarchicalrequirement'){
+            result = [{
                 text: 'Export User Stories...',
                 handler: this._export,
                 scope: this,
@@ -187,40 +188,72 @@ Ext.define("custom-grid-with-deep-export", {
                 scope: this,
                 childModels: ['hierarchicalrequirement','task','defect','testcase']
             }];
-        }
-
-        //If its not a story, then its a PI
-        var idx = _.indexOf(this.getPortfolioItemTypeNames(), this.modelNames[0].toLowerCase());
-        var childModels = [];
-        if (idx > 0){
-            for (var i = idx; i > 0; i--){
-                childModels.push(this.getPortfolioItemTypeNames()[i-1].toLowerCase());
+        } else if (currentModel.startsWith("portfolioitem")) {
+            var idx = _.indexOf(this.getPortfolioItemTypeNames(), currentModel);
+            var childModels = [];
+            if (idx > 0){
+                for (var i = idx; i > 0; i--){
+                    childModels.push(this.getPortfolioItemTypeNames()[i-1].toLowerCase());
+                }
             }
+    
+            result = [{
+                text: 'Export Portfolio Items...',
+                handler: this._export,
+                scope: this,
+                childModels: childModels
+            },{
+                text: 'Export Portfolio Items and User Stories...',
+                handler: this._export,
+                scope: this,
+                includeStories: true,
+                includeTasks: false,
+                childModels: childModels.concat(['hierarchicalrequirement'])
+            },{
+                text: 'Export Portfolio Items, User Stories and Tasks...',
+                handler: this._export,
+                scope: this,
+                childModels: childModels.concat(['hierarchicalrequirement','task'])
+            },{
+                text: 'Export Portfolio Items and Child Items...',
+                handler: this._export,
+                scope: this,
+                childModels: childModels.concat(['hierarchicalrequirement','defect','testcase'])
+            }];
+        } else if (currentModel == 'defect') {
+            result = [{
+                text: 'Export Defects...',
+                handler: this._export,
+                scope: this,
+                childModels: []
+            },{
+                text: 'Export Defects and Child Items...',
+                handler: this._export,
+                scope: this,
+                childModels: ['defect', 'task', 'testcase']
+            }];
+        } else if (currentModel == 'testcase') {
+            result = [{
+                text: 'Export Test Cases...',
+                handler: this._export,
+                scope: this,
+                childModels: []
+            },{
+                text: 'Export Test Cases and Child Items...',
+                handler: this._export,
+                scope: this,
+                childModels: ['defect', 'task', 'testcase']
+            }];
+        } else {
+            result = [{
+                text: 'Export to CSV...',
+                handler: this._export,
+                scope: this,
+                childModels: []
+            }];
         }
-
-        return [{
-            text: 'Export Portfolio Items...',
-            handler: this._export,
-            scope: this,
-            childModels: childModels
-        },{
-            text: 'Export Portfolio Items and User Stories...',
-            handler: this._export,
-            scope: this,
-            includeStories: true,
-            includeTasks: false,
-            childModels: childModels.concat(['hierarchicalrequirement'])
-        },{
-            text: 'Export Portfolio Items, User Stories and Tasks...',
-            handler: this._export,
-            scope: this,
-            childModels: childModels.concat(['hierarchicalrequirement','task'])
-        },{
-            text: 'Export Portfolio Items and Child Items...',
-            handler: this._export,
-            scope: this,
-            childModels: childModels.concat(['hierarchicalrequirement','defect','testcase'])
-        }];
+        
+        return result;
     },
     getPortfolioItemTypeNames: function(){
         return _.pluck(this.portfolioItemTypes, 'typePath');
@@ -245,7 +278,15 @@ Ext.define("custom-grid-with-deep-export", {
     _getExportColumns: function(){
         var grid = this.down('rallygridboard').getGridOrBoard();
         if (grid){
-            return _.filter(grid.columns, function(item){ return (item.dataIndex && item.dataIndex != "DragAndDropRank"); });
+            return _.filter(grid.columns, function(item){
+                return (
+                    item.dataIndex &&
+                    item.dataIndex != "DragAndDropRank" &&
+                    item.xtype &&
+                    item.xtype != "rallytreerankdraghandlecolumn" &&
+                    item.xtype != "rallyrowactioncolumn" &&
+                    item.text != "&#160;");
+            });
         }
         return [];
     },
@@ -289,6 +330,7 @@ Ext.define("custom-grid-with-deep-export", {
         this.logger.log('_export', fetch, args, columns, filters.toString(), childModels, sorters);
 
         var exporter = Ext.create('Rally.technicalservices.HierarchyExporter', {
+            modelName: modelName,
             fileName: 'hierarchy-export.csv',
             columns: columns,
             portfolioItemTypeObjects: this.portfolioItemTypes
