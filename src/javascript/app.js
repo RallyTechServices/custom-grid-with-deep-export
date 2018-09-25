@@ -3,7 +3,7 @@ Ext.define("custom-grid-with-deep-export", {
     componentCls: 'app',
     logger: new Rally.technicalservices.Logger(),
     layout: {
-        type: 'vbox',
+        type:'vbox',
         align: 'stretch'
     },
     items: [{
@@ -12,12 +12,11 @@ Ext.define("custom-grid-with-deep-export", {
     },{
         id: 'grid-area',
         xtype: 'container',
-        layout: {
-            type: 'vbox',
-            align: 'stretch'
-        }
+        flex: 1,
+        type: 'vbox',
+        align: 'stretch'
     }],
-
+    plugins: ['rallygridboardappresizer'],
     config: {
         defaultSettings: {
             columnNames: ['FormattedID', 'Name','ScheduleState'] ,
@@ -46,7 +45,14 @@ Ext.define("custom-grid-with-deep-export", {
     },
 
     launch: function () {
-        this.ancestorFilterPlugin = Ext.create('ancestor-pi-filter');
+        this.ancestorFilterPlugin = Ext.create('ancestor-pi-filter',{
+            listeners: {
+                scope: this,
+                select: function(plugin, values) {
+                    this._buildStore();
+                }
+            }
+        });
         this.addPlugin(this.ancestorFilterPlugin);
         this.fetchPortfolioItemTypes().then({
             success: function(portfolioItemTypes){
@@ -82,7 +88,7 @@ Ext.define("custom-grid-with-deep-export", {
         });
     },
     _addGridboard: function(store) {
-        var gridArea = this.down('#grid-area');
+        var gridArea = this.down('#grid-area')
         gridArea.removeAll();
 
         var filters = this.getSetting('query') ? [Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query'))] : [];
@@ -90,7 +96,7 @@ Ext.define("custom-grid-with-deep-export", {
         if (timeboxScope && timeboxScope.isApplicable(store.model)) {
             filters.push(timeboxScope.getQueryFilter());
         }
-        filters.concat(this.ancestorFilterPlugin.getFilters());
+        filters = filters.concat(this.ancestorFilterPlugin.getFilters());
         this.logger.log('_addGridboard', store);
 
         var context = this.getContext();
@@ -101,10 +107,10 @@ Ext.define("custom-grid-with-deep-export", {
         var summaryRowFeature = Ext.create('Rally.ui.grid.feature.SummaryRow');
         this.gridboard = gridArea.add({
                 xtype: 'rallygridboard',
-                flex: 1,
                 context: context,
                 modelNames: this.modelNames,
                 toggleState: 'grid',
+                height: gridArea.getHeight() - 121,
                 plugins: [
                     'rallygridboardaddnew',
                     {
