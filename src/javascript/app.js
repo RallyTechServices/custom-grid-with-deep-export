@@ -7,7 +7,7 @@ Ext.define("custom-grid-with-deep-export", {
         align: 'stretch'
     },
     items: [{
-        id: 'ancestor-pi-filter',
+        id: Utils.AncestorPiAppFilter.RENDER_AREA_ID,
         xtype: 'container'
     },{
         id: 'grid-area',
@@ -16,7 +16,6 @@ Ext.define("custom-grid-with-deep-export", {
         type: 'vbox',
         align: 'stretch'
     }],
-    plugins: ['rallygridboardappresizer'],
     config: {
         defaultSettings: {
             columnNames: ['FormattedID', 'Name','ScheduleState'] ,
@@ -38,22 +37,15 @@ Ext.define("custom-grid-with-deep-export", {
     statePrefix: 'customlist',
     allowExpansionStateToBeSaved: false,
     enableAddNew: true,
-
     onTimeboxScopeChange: function(newTimeboxScope) {
         this.callParent(arguments);
         this._buildStore();
     },
-
+    plugins: [{
+        ptype: 'UtilsAncestorPiAppFilter',
+        pluginId: 'ancestorFilterPlugin',
+    }],
     launch: function () {
-        this.ancestorFilterPlugin = Ext.create('ancestor-pi-filter',{
-            listeners: {
-                scope: this,
-                select: function(plugin, values) {
-                    this._buildStore();
-                }
-            }
-        });
-        this.addPlugin(this.ancestorFilterPlugin);
         this.fetchPortfolioItemTypes().then({
             success: function(portfolioItemTypes){
                 this.portfolioItemTypes = portfolioItemTypes;
@@ -64,8 +56,26 @@ Ext.define("custom-grid-with-deep-export", {
             },
             scope: this
         });
+        var listenerConfig = {
+            scope: this
+        }
+        this.getPlugin('ancestorFilterPlugin')
+            .on(Utils.AncestorPiAppFilter.PI_SELECTED, function() {
+            this._buildStore();
+        }, this);
 
     },
+    
+    // Usual monkey business to size gridboards
+    onResize: function() {
+        this.callParent(arguments);
+        var gridArea = this.down('#grid-area');
+        var gridboard = this.down('rallygridboard');
+        if ( gridArea && gridboard) {
+            gridboard.setHeight(gridArea.getHeight())
+        }
+    },
+    
     _buildStore: function(){
 
         this.modelNames = [this.getSetting('type')];
@@ -96,7 +106,8 @@ Ext.define("custom-grid-with-deep-export", {
         if (timeboxScope && timeboxScope.isApplicable(store.model)) {
             filters.push(timeboxScope.getQueryFilter());
         }
-        filters = filters.concat(this.ancestorFilterPlugin.getFilters());
+        var ancestorFilterPlugin = this.getPlugin('ancestorFilterPlugin');
+        filters = filters.concat(ancestorFilterPlugin.getFiltersForType(this.modelNames[0]));
         this.logger.log('_addGridboard', store);
 
         var context = this.getContext();
@@ -110,7 +121,7 @@ Ext.define("custom-grid-with-deep-export", {
                 context: context,
                 modelNames: this.modelNames,
                 toggleState: 'grid',
-                height: gridArea.getHeight() - 121,
+                height: gridArea.getHeight(),
                 plugins: [
                     'rallygridboardaddnew',
                     {
@@ -433,12 +444,6 @@ Ext.define("custom-grid-with-deep-export", {
         return Rally.technicalservices.CustomGridWithDeepExportSettings.getFields({
             showSearchAllProjects: this.isMilestoneScoped()
         });
-    },
-    //onSettingsUpdate:  Override
-    onSettingsUpdate: function (settings){
-        this.logger.log('onSettingsUpdate',settings);
-        // Ext.apply(this, settings);
-        this._buildStore();
     },
     fetchPortfolioItemTypes: function(){
         var deferred = Ext.create('Deft.Deferred');

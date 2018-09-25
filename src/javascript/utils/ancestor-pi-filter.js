@@ -1,52 +1,73 @@
-Ext.define('ancestor-pi-filter', {
-   alias: 'plugin.rallyappancestorpifilter',
+Ext.define('Utils.AncestorPiAppFilter', {
+   alias: 'plugin.UtilsAncestorPiAppFilter',
    mixins: ['Ext.AbstractPlugin'],
    extend: 'Ext.Component',
+   
+   statics: {
+        PI_SELECTED: 'Utils.AncestorPiAppFilter.PI_SELECTED',
+        RENDER_AREA_ID: 'utils-ancestor-pi-app-filter'
+   },
+   
+   piTypePaths: [],
    
    init: function(cmp) {
        this.cmp = cmp;
        this.cmp.getSettingsFields = _.compose(this.getSettingsFields, cmp.getSettingsFields);
        var appDefaults = this.cmp.defaultSettings;
-       appDefaults['ancestor-pi-filter.enablePiAncestorFilter'] = false;
+       appDefaults['Utils.AncestorPiAppFilter.piType'] = null;
        this.cmp.setDefaultSettings(appDefaults);
-       this.addControlCmp();
+       
+       // Wait until app settings are ready before adding the control component
+       this.cmp.on('beforelaunch', function() {
+            this.addControlCmp(); 
+       }, this);
+       
+       Rally.data.util.PortfolioItemHelper.getPortfolioItemTypes().then({
+           scope: this,
+           success: function(data) {
+               this.piTypePaths = _.map(data, function(piType) {
+                  return piType.get('TypePath'); 
+               });
+           }
+       })
    },
    
    initComponent: function() {
-        this.addEvents('select');
+        this.addEvents(Utils.AncestorPiAppFilter.PI_SELECTED);
    },
    
    getSettingsFields: function(fields) {
        return [{
-            xtype:'rallycheckboxfield',
-            id: 'ancestor-pi-filter.enablePiAncestorFilter',
-            name:'ancestor-pi-filter.enablePiAncestorFilter',
-            fieldLabel: 'Enable Ancestor Portfolio Item Filter',
-        },{
            xtype: 'rallyportfolioitemtypecombobox',
-            id: 'ancestor-pi-filter.piType',
-            name: 'ancestor-pi-filter.piType',
+            id: 'Utils.AncestorPiAppFilter.piType',
+            name: 'Utils.AncestorPiAppFilter.piType',
             fieldLabel: 'Ancestor Portfolio Item Type',
-            valueField: 'TypePath'
+            valueField: 'TypePath',
+            allowNoEntry: true
         }
         ].concat(fields || []);
    },
    
+   // Requires that app settings are available (e.g. from 'beforelaunch')
    addControlCmp: function() {
        if ( this.isAncestorFilterEnabled() ) {
-           var selectedPiType = this.cmp.getSetting('ancestor-pi-filter.piType');
-           var renderArea = this.cmp.down('#ancestor-pi-filter');
+           var selectedPiType = this.cmp.getSetting('Utils.AncestorPiAppFilter.piType');
+           var renderArea = this.cmp.down('#' + Utils.AncestorPiAppFilter.RENDER_AREA_ID);
            if ( renderArea ) {
                this.piSelector = Ext.create('Rally.ui.combobox.ArtifactSearchComboBox', {
                    fieldLabel: "Ancestor Portfolio Item",
                    storeConfig: {
-                      models: selectedPiType
+                      models: selectedPiType,
+                      autoLoad: true
                   },
+                  stateful: true,
+                  stateId: this.cmp.getContext().getScopedStateId('Utils.AncestorPiAppFilter.piSelector'),
+                  valueField: '_ref',
                   allowClear: true,
                   listeners: {
                       scope: this,
                       select: function(cmp, records) {
-                          this.fireEvent('select', this, records);
+                          this.fireEvent(Utils.AncestorPiAppFilter.PI_SELECTED, this, records);
                       }
                   }
                });
@@ -56,22 +77,50 @@ Ext.define('ancestor-pi-filter', {
    },
    
    isAncestorFilterEnabled: function() {
-       return this.cmp.getSetting('ancestor-pi-filter.enablePiAncestorFilter');
+       var piType = this.cmp.getSetting('Utils.AncestorPiAppFilter.piType');
+       return piType && piType != ''
    },
    
-   getFilters: function() {
+   getFiltersForType: function(type) {
        var result = []
        
        // Return no filter if not enabled OR if '-- Clear --' option selected
-       // '-- None --' option has a value of null
+       // '-- None --' option has a value of null when selected (however value is '' on init)
+       // so must also getRecord to determin if in None or Clear state.
        // '-- Clear --' option has a value of ''
        if ( this.isAncestorFilterEnabled() && this.piSelector.getValue() != '') {
-           var selectedPi = this.piSelector.getRecord();
-           if ( selectedPi ) {
-               result.push(Rally.data.wsapi.Filter.or([{
-                   property: "PortfolioItem",
-                   value: selectedPi.get('_ref')
-               }]));
+           var selectedPi = this.piSelector.getValue();
+           if ( this.piSelector.getRecord() && selectedPi != '') {
+               var property;
+               switch(type) {
+                   case 'HierarchicalRequirement':
+                       property = 'PortfolioItem'
+                       break;
+                    case 'Defect':
+                        property = 'Requirement';
+                        break;
+                    case 'Task':
+                        // Fall through
+                    case 'TestCase':
+                        property = 'WorkProduct'
+                        break;
+               }
+               
+               if ( property ) {
+                   var selectedPiType = this.cmp.getSetting('Utils.AncestorPiAppFilter.piType');
+                   _.forEach(this.piTypePaths, function(piTypePath) {
+                       if ( piTypePath == selectedPiType ) {
+                           return false;
+                       } else {
+                           property = property + '.Parent'
+                       }
+                   });
+                   
+                   result.push(Rally.data.wsapi.Filter.or([{
+                       property: property,
+                       value: selectedPi
+                   }]));
+               }
            }
        }
        
