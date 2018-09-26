@@ -43,7 +43,9 @@ Ext.define('Utils.AncestorPiAppFilter', {
             name: 'Utils.AncestorPiAppFilter.piType',
             fieldLabel: 'Ancestor Portfolio Item Type',
             valueField: 'TypePath',
-            allowNoEntry: true
+            allowNoEntry: true,
+           // Needed to allow component to auto select '-- No Entry --' instead of lowest PI level
+            defaultSelectionPosition: 'first'
         }
         ].concat(fields || []);
    },
