@@ -135,20 +135,11 @@ Ext.define("custom-grid-with-deep-export", {
                             modelNames: this.modelNames,
                             inlineFilterPanelConfig: {
                                 quickFilterPanelConfig: {
-                                    plugins: [{
-                                        ptype: 'UtilsAncestorPiInlineFilterPlugin',
-                                        portfolioItemTypes: this.portfolioItemTypes,
-                                        modelName: this.modelNames[0]
-                                    }],
+                                    portfolioItemTypes: this.portfolioItemTypes,
+                                    modelName: this.modelNames[0],
                                     whiteListFields: [
                                        'Tags',
                                        'Milestones'
-                                    ],
-                                    defaultFields: [
-                                        'ArtifactSearch',
-                                        'Owner',
-                                        'ModelType',
-                                        'Milestones'
                                     ]
                                 }
                             }
