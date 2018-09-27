@@ -7,9 +7,6 @@ Ext.define("custom-grid-with-deep-export", {
         align: 'stretch'
     },
     items: [{
-        id: Utils.AncestorPiAppFilter.RENDER_AREA_ID,
-        xtype: 'container'
-    },{
         id: 'grid-area',
         xtype: 'container',
         flex: 1,
@@ -41,10 +38,6 @@ Ext.define("custom-grid-with-deep-export", {
         this.callParent(arguments);
         this._buildStore();
     },
-    plugins: [{
-        ptype: 'UtilsAncestorPiAppFilter',
-        pluginId: 'ancestorFilterPlugin',
-    }],
     launch: function () {
         Rally.data.util.PortfolioItemHelper.getPortfolioItemTypes()
         .then({
@@ -62,11 +55,6 @@ Ext.define("custom-grid-with-deep-export", {
         var listenerConfig = {
             scope: this
         }
-        this.getPlugin('ancestorFilterPlugin')
-            .on(Utils.AncestorPiAppFilter.PI_SELECTED, function() {
-            this._buildStore();
-        }, this);
-
     },
     
     // Usual monkey business to size gridboards
@@ -109,8 +97,6 @@ Ext.define("custom-grid-with-deep-export", {
         if (timeboxScope && timeboxScope.isApplicable(store.model)) {
             filters.push(timeboxScope.getQueryFilter());
         }
-        var ancestorFilterPlugin = this.getPlugin('ancestorFilterPlugin');
-        filters = filters.concat(ancestorFilterPlugin.getFiltersForType(this.modelNames[0]));
         this.logger.log('_addGridboard', store);
 
         var context = this.getContext();
