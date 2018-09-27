@@ -195,8 +195,8 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
 
         var displayName = '';
         Ext.Array.each(this.portfolioItemTypeObjects, function(p){
-            if (p.typePath.toLowerCase() === modelName.toLowerCase()){
-                displayName = p.name;
+            if (p.get('TypePath').toLowerCase() === modelName.toLowerCase()){
+                displayName = p.get('Name');
                 return false;
             }
         });
@@ -246,7 +246,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                 piIdx = -1;
     
             Ext.Array.each(piTypes, function(piObj, idx){
-                if (piObj.typePath.toLowerCase() === rootModel.toLowerCase()){
+                if (piObj.get('TypePath').toLowerCase() === rootModel.toLowerCase()){
                     piIdx = idx;
                 }
             });
@@ -257,7 +257,12 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
             });
     
             if (piIdx >= 0){
-                columns = columns.concat(Ext.Array.map(piTypes.slice(0,piIdx+1), function(piObj) { return { dataIndex: piObj.typePath.toLowerCase(), text: piObj.name };} ));
+                columns = columns.concat(Ext.Array.map(piTypes.slice(0,piIdx+1), function(piObj) {
+                    return {
+                        dataIndex: piObj.get('TypePath').toLowerCase(),
+                        text: piObj.get('Name')
+                    };
+                } ));
                 columns.push({
                     dataIndex: 'type',
                     text: 'Artifact Type'

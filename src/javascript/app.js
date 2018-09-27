@@ -46,9 +46,12 @@ Ext.define("custom-grid-with-deep-export", {
         pluginId: 'ancestorFilterPlugin',
     }],
     launch: function () {
-        this.fetchPortfolioItemTypes().then({
+        Rally.data.util.PortfolioItemHelper.getPortfolioItemTypes()
+        .then({
             success: function(portfolioItemTypes){
-                this.portfolioItemTypes = portfolioItemTypes;
+                this.portfolioItemTypes = _.sortBy(portfolioItemTypes, function(type) {
+                    return type.get('Ordinal');
+                });
                 this._buildStore();
             },
             failure: function(msg){
@@ -132,6 +135,11 @@ Ext.define("custom-grid-with-deep-export", {
                             modelNames: this.modelNames,
                             inlineFilterPanelConfig: {
                                 quickFilterPanelConfig: {
+                                    plugins: [{
+                                        ptype: 'UtilsAncestorPiInlineFilterPlugin',
+                                        portfolioItemTypes: this.portfolioItemTypes,
+                                        modelName: this.modelNames[0]
+                                    }],
                                     whiteListFields: [
                                        'Tags',
                                        'Milestones'
@@ -287,7 +295,9 @@ Ext.define("custom-grid-with-deep-export", {
         return result;
     },
     getPortfolioItemTypeNames: function(){
-        return _.pluck(this.portfolioItemTypes, 'typePath');
+        return _.map(this.portfolioItemTypes, function(type) {
+            return type.get('TypePath');
+        });
     },
 
     _showError: function(msg){
@@ -444,7 +454,7 @@ Ext.define("custom-grid-with-deep-export", {
         return Rally.technicalservices.CustomGridWithDeepExportSettings.getFields({
             showSearchAllProjects: this.isMilestoneScoped()
         });
-    },
+    },/*
     fetchPortfolioItemTypes: function(){
         var deferred = Ext.create('Deft.Deferred');
 
@@ -491,4 +501,5 @@ Ext.define("custom-grid-with-deep-export", {
         });
         return deferred.promise;
     }
+    */
 });

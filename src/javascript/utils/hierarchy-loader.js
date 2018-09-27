@@ -71,7 +71,9 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
 
             this.fireEvent('hierarchyloadartifactsloaded', type, args);
 
-            var portfolioItemTypePaths = _.pluck(this.portfolioItemTypes, 'typePath'),
+            var portfolioItemTypePaths = _.map(this.portfolioItemTypes, function(type) {
+                return type.get('TypePath');
+            }),
                 portfolioItemOrdinal = _.indexOf(portfolioItemTypePaths, type);
 
             if (portfolioItemOrdinal === 0 && Ext.Array.contains(this.loadChildModels, this.storyModelName)) {
@@ -143,7 +145,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader',{
         var type = this.storyModelName,
             fetch = this.fetch.concat(this.getRequiredFetchFields(type)),
             chunks = this._getChunks(parentRecords, 'LeafStoryCount'),
-            featureParentName = this.portfolioItemTypes[0].name.replace(/\s/g, '') + ".ObjectID";
+            featureParentName = this.portfolioItemTypes[0].get('Name').replace(/\s/g, '') + ".ObjectID";
 
         return this.fetchChunks(type, fetch, chunks, featureParentName, Ext.String.format("Please Wait... Loading User Stories for {0} Portfolio Items", parentRecords.length));
     },
