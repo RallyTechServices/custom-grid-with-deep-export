@@ -10,7 +10,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@agile-central-technical-services/utils-ancestor-pi-inline-filter": "^1.0.1",
+    "@agile-central-technical-services/utils-ancestor-pi-inline-filter": "^1.0.2",
     "@agile-central-technical-services/utils-shared-views": "^1.0.0",
     "grunt": "~0.4.5",
     "grunt-cli": "0.1.6",
