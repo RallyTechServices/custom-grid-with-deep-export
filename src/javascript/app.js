@@ -3,10 +3,16 @@ Ext.define("custom-grid-with-deep-export", {
     componentCls: 'app',
     logger: new Rally.technicalservices.Logger(),
     layout: {
-        type: 'vbox',
+        type:'vbox',
         align: 'stretch'
     },
-
+    items: [{
+        id: 'grid-area',
+        xtype: 'container',
+        flex: 1,
+        type: 'vbox',
+        align: 'stretch'
+    }],
     config: {
         defaultSettings: {
             columnNames: ['FormattedID', 'Name','ScheduleState'] ,
@@ -28,16 +34,17 @@ Ext.define("custom-grid-with-deep-export", {
     statePrefix: 'customlist',
     allowExpansionStateToBeSaved: false,
     enableAddNew: true,
-
     onTimeboxScopeChange: function(newTimeboxScope) {
         this.callParent(arguments);
         this._buildStore();
     },
-
     launch: function () {
-        this.fetchPortfolioItemTypes().then({
+        Rally.data.util.PortfolioItemHelper.getPortfolioItemTypes()
+        .then({
             success: function(portfolioItemTypes){
-                this.portfolioItemTypes = portfolioItemTypes;
+                this.portfolioItemTypes = _.sortBy(portfolioItemTypes, function(type) {
+                    return type.get('Ordinal');
+                });
                 this._buildStore();
             },
             failure: function(msg){
@@ -45,8 +52,21 @@ Ext.define("custom-grid-with-deep-export", {
             },
             scope: this
         });
-
+        var listenerConfig = {
+            scope: this
+        }
     },
+    
+    // Usual monkey business to size gridboards
+    onResize: function() {
+        this.callParent(arguments);
+        var gridArea = this.down('#grid-area');
+        var gridboard = this.down('rallygridboard');
+        if ( gridArea && gridboard) {
+            gridboard.setHeight(gridArea.getHeight())
+        }
+    },
+    
     _buildStore: function(){
 
         this.modelNames = [this.getSetting('type')];
@@ -69,8 +89,8 @@ Ext.define("custom-grid-with-deep-export", {
         });
     },
     _addGridboard: function(store) {
-
-        this.removeAll();
+        var gridArea = this.down('#grid-area')
+        gridArea.removeAll();
 
         var filters = this.getSetting('query') ? [Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query'))] : [];
         var timeboxScope = this.getContext().getTimeboxScope();
@@ -85,31 +105,32 @@ Ext.define("custom-grid-with-deep-export", {
             dataContext.project = null;
         }
         var summaryRowFeature = Ext.create('Rally.ui.grid.feature.SummaryRow');
-        this.gridboard = this.add({
+        var currentModelName = this.modelNames[0];
+        this.gridboard = gridArea.add({
                 xtype: 'rallygridboard',
-                flex: 1,
                 context: context,
                 modelNames: this.modelNames,
                 toggleState: 'grid',
+                height: gridArea.getHeight(),
+                listeners: {
+                    scope: this,
+                    viewchange: this.viewChange,
+                },
                 plugins: [
                     'rallygridboardaddnew',
                     {
                         ptype: 'rallygridboardinlinefiltercontrol',
                         inlineFilterButtonConfig: {
                             stateful: true,
-                            stateId: this.getContext().getScopedStateId('filters-1'),
+                            stateId: this.getModelScopedStateId(currentModelName, 'filters'),
                             modelNames: this.modelNames,
                             inlineFilterPanelConfig: {
                                 quickFilterPanelConfig: {
+                                    portfolioItemTypes: this.portfolioItemTypes,
+                                    modelName: currentModelName,
                                     whiteListFields: [
                                        'Tags',
                                        'Milestones'
-                                    ],
-                                    defaultFields: [
-                                        'ArtifactSearch',
-                                        'Owner',
-                                        'ModelType',
-                                        'Milestones'
                                     ]
                                 }
                             }
@@ -120,7 +141,7 @@ Ext.define("custom-grid-with-deep-export", {
                         headerPosition: 'left',
                         modelNames: this.modelNames,
                         stateful: true,
-                        stateId: this.getContext().getScopedStateId('field-picker')
+                        stateId: this.getModelScopedStateId(currentModelName, 'fields')
                     },
                     {
                         ptype: 'rallygridboardactionsmenu',
@@ -131,8 +152,12 @@ Ext.define("custom-grid-with-deep-export", {
                     },
                     {
                         ptype: 'rallygridboardsharedviewcontrol',
-                        stateful: true,
-                        stateId: this.getContext().getScopedStateId('shared-views')
+                        sharedViewConfig: {
+                            enableUrlSharing: this.isFullPageApp !== false,
+                            stateful: true,
+                            stateId: this.getModelScopedStateId(currentModelName, 'views'),
+                            stateEvents: ['select','beforedestroy']
+                        },
                     }
                 ],
                 cardBoardConfig: {
@@ -167,6 +192,15 @@ Ext.define("custom-grid-with-deep-export", {
                 }
         });
     },
+    
+    viewChange: function() {
+        this._buildStore();
+    },
+    
+    getModelScopedStateId: function(modelName, id) {
+        return this.getContext().getScopedStateId(modelName + '-' + id);
+    },
+    
     _getExportMenuItems: function(){
         var result = [];
         this.logger.log('_getExportMenuItems', this.modelNames[0]);
@@ -256,7 +290,9 @@ Ext.define("custom-grid-with-deep-export", {
         return result;
     },
     getPortfolioItemTypeNames: function(){
-        return _.pluck(this.portfolioItemTypes, 'typePath');
+        return _.map(this.portfolioItemTypes, function(type) {
+            return type.get('TypePath');
+        });
     },
 
     _showError: function(msg){
@@ -413,57 +449,5 @@ Ext.define("custom-grid-with-deep-export", {
         return Rally.technicalservices.CustomGridWithDeepExportSettings.getFields({
             showSearchAllProjects: this.isMilestoneScoped()
         });
-    },
-    //onSettingsUpdate:  Override
-    onSettingsUpdate: function (settings){
-        this.logger.log('onSettingsUpdate',settings);
-        // Ext.apply(this, settings);
-        this._buildStore();
-    },
-    fetchPortfolioItemTypes: function(){
-        var deferred = Ext.create('Deft.Deferred');
-
-        var store = Ext.create('Rally.data.wsapi.Store', {
-            model: 'TypeDefinition',
-            fetch: ['TypePath', 'Ordinal','Name'],
-            filters: [
-                {
-                    property: 'Parent.Name',
-                    operator: '=',
-                    value: 'Portfolio Item'
-                },
-                {
-                    property: 'Creatable',
-                    operator: '=',
-                    value: 'true'
-                }
-            ],
-            sorters: [{
-                property: 'Ordinal',
-                direction: 'ASC'
-            }]
-        });
-        store.load({
-            callback: function(records, operation, success){
-
-                if (success){
-                    var portfolioItemTypes = new Array(records.length);
-                    _.each(records, function(d){
-                        //Use ordinal to make sure the lowest level portfolio item type is the first in the array.
-                        var idx = Number(d.get('Ordinal'));
-                        portfolioItemTypes[idx] = { typePath: d.get('TypePath').toLowerCase(), name: d.get('Name') };
-                        //portfolioItemTypes.reverse();
-                    });
-                    deferred.resolve(portfolioItemTypes);
-                } else {
-                    var error_msg = '';
-                    if (operation && operation.error && operation.error.errors){
-                        error_msg = operation.error.errors.join(',');
-                    }
-                    deferred.reject('Error loading Portfolio Item Types:  ' + error_msg);
-                }
-            }
-        });
-        return deferred.promise;
     }
 });

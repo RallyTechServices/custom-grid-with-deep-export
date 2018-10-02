@@ -5,6 +5,7 @@
     "apiKey": "_PUT_APIKEY_HERE_",
     "javascript": [
         "node_modules/@agile-central-technical-services/utils-shared-views/index.js",
+        "node_modules/@agile-central-technical-services/utils-ancestor-pi-inline-filter/index.js",
         "src/javascript/utils/*.js",
         "src/javascript/*.js"
     ]
