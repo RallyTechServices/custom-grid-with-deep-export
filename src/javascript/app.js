@@ -105,24 +105,29 @@ Ext.define("custom-grid-with-deep-export", {
             dataContext.project = null;
         }
         var summaryRowFeature = Ext.create('Rally.ui.grid.feature.SummaryRow');
+        var currentModelName = this.modelNames[0];
         this.gridboard = gridArea.add({
                 xtype: 'rallygridboard',
                 context: context,
                 modelNames: this.modelNames,
                 toggleState: 'grid',
                 height: gridArea.getHeight(),
+                listeners: {
+                    scope: this,
+                    viewchange: this.viewChange,
+                },
                 plugins: [
                     'rallygridboardaddnew',
                     {
                         ptype: 'rallygridboardinlinefiltercontrol',
                         inlineFilterButtonConfig: {
                             stateful: true,
-                            stateId: this.getContext().getScopedStateId('filters-1'),
+                            stateId: this.getModelScopedStateId(currentModelName, 'filters'),
                             modelNames: this.modelNames,
                             inlineFilterPanelConfig: {
                                 quickFilterPanelConfig: {
                                     portfolioItemTypes: this.portfolioItemTypes,
-                                    modelName: this.modelNames[0],
+                                    modelName: currentModelName,
                                     whiteListFields: [
                                        'Tags',
                                        'Milestones'
@@ -136,7 +141,7 @@ Ext.define("custom-grid-with-deep-export", {
                         headerPosition: 'left',
                         modelNames: this.modelNames,
                         stateful: true,
-                        stateId: this.getContext().getScopedStateId('field-picker')
+                        stateId: this.getModelScopedStateId(currentModelName, 'fields')
                     },
                     {
                         ptype: 'rallygridboardactionsmenu',
@@ -147,8 +152,12 @@ Ext.define("custom-grid-with-deep-export", {
                     },
                     {
                         ptype: 'rallygridboardsharedviewcontrol',
-                        stateful: true,
-                        stateId: this.getContext().getScopedStateId('shared-views')
+                        sharedViewConfig: {
+                            enableUrlSharing: this.isFullPageApp !== false,
+                            stateful: true,
+                            stateId: this.getModelScopedStateId(currentModelName, 'views'),
+                            stateEvents: ['select','beforedestroy']
+                        },
                     }
                 ],
                 cardBoardConfig: {
@@ -183,6 +192,15 @@ Ext.define("custom-grid-with-deep-export", {
                 }
         });
     },
+    
+    viewChange: function() {
+        this._buildStore();
+    },
+    
+    getModelScopedStateId: function(modelName, id) {
+        return this.getContext().getScopedStateId(modelName + '-' + id);
+    },
+    
     _getExportMenuItems: function(){
         var result = [];
         this.logger.log('_getExportMenuItems', this.modelNames[0]);
