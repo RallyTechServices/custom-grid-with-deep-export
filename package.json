@@ -1,6 +1,6 @@
 {
   "name": "custom-grid-with-deep-export",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "scripts": {
     "debug": "grunt debug",
     "debug:watch": "nodemon --exec grunt debug",
@@ -8,9 +8,10 @@
     "deploy-pretty:watch": "nodemon --exec grunt deploy-pretty",
     "deploy-debugsdk:watch": "nodemon --exec grunt deploy-debugsdk"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@agile-central-technical-services/utils-ancestor-pi-inline-filter": "^1.0.6"
+  },
   "devDependencies": {
-    "@agile-central-technical-services/utils-ancestor-pi-inline-filter": "^1.0.5",
     "@agile-central-technical-services/utils-shared-views": "^1.0.0",
     "grunt": "~0.4.5",
     "grunt-cli": "0.1.6",
