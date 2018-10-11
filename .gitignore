@@ -9,3 +9,4 @@ _SpecRunner.html
 .settings
 deploy/
 -deploy/Ugly.txt
+auth.*.json

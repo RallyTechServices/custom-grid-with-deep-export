@@ -224,11 +224,12 @@ Ext.define("custom-grid-with-deep-export", {
             }];
         }
         else if (currentModel.startsWith("portfolioitem")) {
-            var idx = _.indexOf(this.getPortfolioItemTypeNames(), currentModel);
+            var piTypeNames = this.getPortfolioItemTypeNames();
+            var idx = _.indexOf(piTypeNames, currentModel);
             var childModels = [];
             if (idx > 0) {
                 for (var i = idx; i > 0; i--) {
-                    childModels.push(this.getPortfolioItemTypeNames()[i - 1].toLowerCase());
+                    childModels.push(piTypeNames[i - 1]);
                 }
             }
 
@@ -241,8 +242,6 @@ Ext.define("custom-grid-with-deep-export", {
                 text: 'Export Portfolio Items and User Stories...',
                 handler: this._export,
                 scope: this,
-                includeStories: true,
-                includeTasks: false,
                 childModels: childModels.concat(['hierarchicalrequirement'])
             }, {
                 text: 'Export Portfolio Items, User Stories and Tasks...',
@@ -253,7 +252,7 @@ Ext.define("custom-grid-with-deep-export", {
                 text: 'Export Portfolio Items and Child Items...',
                 handler: this._export,
                 scope: this,
-                childModels: childModels.concat(['hierarchicalrequirement', 'defect', 'testcase'])
+                childModels: childModels.concat(['hierarchicalrequirement', 'task', 'defect', 'testcase'])
             }];
         }
         else if (currentModel == 'defect') {
@@ -295,7 +294,7 @@ Ext.define("custom-grid-with-deep-export", {
     },
     getPortfolioItemTypeNames: function() {
         return _.map(this.portfolioItemTypes, function(type) {
-            return type.get('TypePath');
+            return type.get('TypePath').toLowerCase();
         });
     },
 
