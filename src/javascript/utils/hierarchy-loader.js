@@ -72,7 +72,7 @@ Ext.define('Rally.technicalservices.HierarchyLoader', {
             this.fireEvent('hierarchyloadartifactsloaded', type, args);
 
             var portfolioItemTypePaths = _.map(this.portfolioItemTypes, function(type) {
-                    return type.get('TypePath');
+                    return type.get('TypePath').toLowerCase();
                 }),
                 portfolioItemOrdinal = _.indexOf(portfolioItemTypePaths, type);
 
