@@ -1,29 +1,3 @@
-// Fix the PreliminaryEstimate renderer to sort by value
-Rally.ui.renderer.GridEditorFactory.editorRenderers['PreliminaryEstimate'] = function(field) {
-    return {
-        xtype: 'rallyrecordcontexteditor',
-        field: {
-            xtype: 'rallycombobox',
-            allowNoEntry: !field.required,
-            editable: false,
-            name: field.name,
-            storeConfig: {
-                autoLoad: true,
-                model: field.name,
-                remoteFilter: true,
-                sorters: [{
-                    property: "Value"
-                }],
-                listeners: {
-                    load: function() {
-                        return;
-                    }
-                }
-            }
-        }
-    };
-};
-
 // Remove 'Actuals' from the blacklist
 Ext.override(Rally.ui.gridboard.plugin.GridBoardFieldPicker, {
     gridFieldBlackList: [

@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@agile-central-technical-services/utils-ancestor-pi-inline-filter@^1.0.10":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@agile-central-technical-services/utils-ancestor-pi-inline-filter/-/utils-ancestor-pi-inline-filter-1.0.10.tgz#1d7526d2ce796192c27e31266b33057a244306d9"
+"@agile-central-technical-services/utils-ancestor-pi-inline-filter@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@agile-central-technical-services/utils-ancestor-pi-inline-filter/-/utils-ancestor-pi-inline-filter-1.0.11.tgz#706d73bcc31eae70e6b29ad44c315a4170980ca6"
 
 "@agile-central-technical-services/utils-shared-views@^1.0.2":
   version "1.0.2"
