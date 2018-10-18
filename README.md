@@ -4,6 +4,8 @@
 
 Note that as with other custom lists, the filter is only applied at the root level.
 
+Additionally, items can be filtered by an ancestor portfolio item. (e.g. filter Features that are ultimately children of the higher level Theme).
+
 Several export options are provided and change depending on the root record type
 chosen in Edit App Settings...
 
