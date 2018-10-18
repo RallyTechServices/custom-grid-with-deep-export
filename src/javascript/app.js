@@ -21,6 +21,7 @@ Ext.define("custom-grid-with-deep-export", {
             type: 'HierarchicalRequirement',
             pageSize: 50,
             searchAllProjects: false,
+            enableUrlSharing: false
         }
     },
 
@@ -153,7 +154,7 @@ Ext.define("custom-grid-with-deep-export", {
                 {
                     ptype: 'rallygridboardsharedviewcontrol',
                     sharedViewConfig: {
-                        enableUrlSharing: this.isFullPageApp !== false,
+                        enableUrlSharing: this.getSetting('enableUrlSharing'),
                         stateful: true,
                         stateId: this.getModelScopedStateId(currentModelName, 'views'),
                         stateEvents: ['select', 'beforedestroy']

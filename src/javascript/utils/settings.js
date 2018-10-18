@@ -1,13 +1,13 @@
-(function () {
+(function() {
     var Ext = window.Ext4 || window.Ext;
 
-    var getHiddenFieldConfig = function (name) {
+    var getHiddenFieldConfig = function(name) {
         return {
             name: name,
             xtype: 'rallytextfield',
             hidden: true,
             handlesEvents: {
-                typeselected: function (type) {
+                typeselected: function(type) {
                     this.setValue(null);
                 }
             }
@@ -22,21 +22,20 @@
             'Rally.ui.CheckboxField'
         ],
 
-        getFields: function (config) {
+        getFields: function(config) {
 
             var type_filters = Rally.data.wsapi.Filter.or([
-                {property: 'TypePath', value: 'HierarchicalRequirement'},
-                {property: 'TypePath', operator: 'contains', value: 'PortfolioItem/'}
+                { property: 'TypePath', value: 'HierarchicalRequirement' },
+                { property: 'TypePath', operator: 'contains', value: 'PortfolioItem/' }
             ]);
 
-            return [
-                {
-                  id:'searchAllProjects',
-                  name:'searchAllProjects',
-                  fieldLabel: 'Scope Across Workspace',
-                  labelAlign: 'left',
-                  xtype:'rallycheckboxfield',
-                  hidden: !config.showSearchAllProjects
+            return [{
+                    id: 'searchAllProjects',
+                    name: 'searchAllProjects',
+                    fieldLabel: 'Scope Across Workspace',
+                    labelAlign: 'left',
+                    xtype: 'rallycheckboxfield',
+                    hidden: !config.showSearchAllProjects
                 },
                 {
                     name: 'type',
@@ -59,14 +58,14 @@
                     displayField: 'DisplayName',
                     valueField: 'TypePath',
                     listeners: {
-                        select: function (combo) {
+                        select: function(combo) {
                             combo.fireEvent('typeselected', combo.getRecord().get('TypePath'), combo.context);
                         }
                     },
                     bubbleEvents: ['typeselected'],
                     readyEvent: 'ready',
                     handlesEvents: {
-                        projectscopechanged: function (context) {
+                        projectscopechanged: function(context) {
                             this.refreshWithNewContext(context);
                         }
                     }
@@ -76,6 +75,11 @@
                     name: 'showControls',
                     xtype: 'rallycheckboxfield',
                     fieldLabel: 'Show Control Bar'
+                },
+                {
+                    name: 'enableUrlSharing',
+                    xtype: 'rallycheckboxfield',
+                    fieldLabel: 'Enable URL Sharing of Saved Views'
                 },
                 getHiddenFieldConfig('columnNames'),
                 getHiddenFieldConfig('order')
