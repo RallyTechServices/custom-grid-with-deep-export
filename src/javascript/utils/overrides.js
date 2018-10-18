@@ -1,10 +1,10 @@
 Ext.override(Rally.ui.gridboard.plugin.GridBoardFieldPicker, {
     gridFieldBlackList: [
-        'Actuals',
+        // 'Actuals',
         'Changesets',
         'Children',
-       // 'Description',
-       // 'Notes',
+        // 'Description',
+        // 'Notes',
         'ObjectID',
         'Predecessors',
         'RevisionHistory',
@@ -21,7 +21,7 @@ Ext.override(Rally.ui.inlinefilter.PropertyFieldComboBox, {
      * @cfg {String[]} whiteListFields
      * field names that should be included from the filter row field combobox
      */
-    defaultWhiteListFields: ['Milestones','Tags']
+    defaultWhiteListFields: ['Milestones', 'Tags']
 });
 
 Ext.override(Rally.ui.grid.TreeGrid, {
@@ -33,15 +33,16 @@ Ext.override(Rally.ui.grid.TreeGrid, {
             // use the in-use column config to preserve its current settings
             var result = newColumn;
             var newColumnName = this._getColumnName(newColumn);
-            var oldColumn = _.find(oldColumns, {dataIndex: newColumnName});
+            var oldColumn = _.find(oldColumns, { dataIndex: newColumnName });
             if (oldColumn) {
                 result = this._getColumnConfigFromColumn(oldColumn);
-            } else if ( this.config && this.config.columnCfgs ) {
+            }
+            else if (this.config && this.config.columnCfgs) {
                 // Otherwise, if the newly selected column appears in the original columnCfgs
                 // use that config. (This allows the column picker to get any renderers or summary
                 // config from the column config)
-                var columnCfg = _.find(this.config.columnCfgs, {dataIndex: newColumnName});
-                if ( columnCfg ) {
+                var columnCfg = _.find(this.config.columnCfgs, { dataIndex: newColumnName });
+                if (columnCfg) {
                     result = columnCfg;
                 }
             }
@@ -49,7 +50,7 @@ Ext.override(Rally.ui.grid.TreeGrid, {
             return result;
         }, this);
     },
-    
+
     // Override needed to allow summaryType to be included when a column is restored
     // from state.
     _applyStatefulColumns: function(columns) {
