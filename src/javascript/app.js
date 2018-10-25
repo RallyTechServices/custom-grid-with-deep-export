@@ -7,6 +7,14 @@ Ext.define("custom-grid-with-deep-export", {
         align: 'stretch'
     },
     items: [{
+        id: Utils.AncestorPiAppFilter.RENDER_AREA_ID,
+        xtype: 'container',
+        layout: {
+            type: 'hbox',
+            align: 'middle',
+            defaultMargins: '0 10 10 0',
+        }
+    }, {
         id: 'grid-area',
         xtype: 'container',
         flex: 1,
@@ -40,22 +48,37 @@ Ext.define("custom-grid-with-deep-export", {
         this._buildStore();
     },
     launch: function() {
-        Rally.data.util.PortfolioItemHelper.getPortfolioItemTypes()
-            .then({
-                success: function(portfolioItemTypes) {
-                    this.portfolioItemTypes = _.sortBy(portfolioItemTypes, function(type) {
-                        return type.get('Ordinal');
-                    });
-                    this._buildStore();
+        this.ancestorFilterPlugin = Ext.create('Utils.AncestorPiAppFilter', {
+            ptype: 'UtilsAncestorPiAppFilter',
+            pluginId: 'ancestorFilterPlugin',
+            settingsConfig: {
+                //labelWidth: 150,
+                //margin: 10
+            },
+            listeners: {
+                scope: this,
+                ready: function(plugin) {
+                    Rally.data.util.PortfolioItemHelper.getPortfolioItemTypes().then({
+                        scope: this,
+                        success: function(portfolioItemTypes) {
+                            this.portfolioItemTypes = _.sortBy(portfolioItemTypes, function(type) {
+                                return type.get('Ordinal');
+                            });
+
+                            plugin.addListener({
+                                scope: this,
+                                select: this.viewChange
+                            });
+                            this.viewChange();
+                        },
+                        failure: function(msg) {
+                            this._showError(msg);
+                        },
+                    })
                 },
-                failure: function(msg) {
-                    this._showError(msg);
-                },
-                scope: this
-            });
-        var listenerConfig = {
-            scope: this
-        }
+            }
+        });
+        this.addPlugin(this.ancestorFilterPlugin);
     },
 
     // Usual monkey business to size gridboards
@@ -93,10 +116,16 @@ Ext.define("custom-grid-with-deep-export", {
         var gridArea = this.down('#grid-area')
         gridArea.removeAll();
 
+        var currentModelName = this.modelNames[0];
+
         var filters = this.getSetting('query') ? [Rally.data.wsapi.Filter.fromQueryString(this.getSetting('query'))] : [];
         var timeboxScope = this.getContext().getTimeboxScope();
         if (timeboxScope && timeboxScope.isApplicable(store.model)) {
             filters.push(timeboxScope.getQueryFilter());
+        }
+        var ancestorFilter = this.ancestorFilterPlugin.getFilterForType(currentModelName);
+        if (ancestorFilter) {
+            filters.push(ancestorFilter);
         }
         this.logger.log('_addGridboard', store);
 
@@ -106,7 +135,6 @@ Ext.define("custom-grid-with-deep-export", {
             dataContext.project = null;
         }
         var summaryRowFeature = Ext.create('Rally.ui.grid.feature.SummaryRow');
-        var currentModelName = this.modelNames[0];
         this.gridboard = gridArea.add({
             xtype: 'rallygridboard',
             context: context,

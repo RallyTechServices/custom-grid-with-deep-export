@@ -5,6 +5,8 @@
 Note that as with other custom lists, the filter is only applied at the root level.
 
 Additionally, items can be filtered by an ancestor portfolio item. (e.g. filter Features that are ultimately children of the higher level Theme).
+If placed on a page that also has a [pi-ancestor-filter-broadcaster](https://github.com/RallyTechServices/pi-ancestor-filter-broadcaster),
+and filter by ancestor portfolio item is enabled, it will listen to the broadcaster for the selected ancestor.
 
 Several export options are provided and change depending on the root record type
 chosen in Edit App Settings...
