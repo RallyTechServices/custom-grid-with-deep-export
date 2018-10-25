@@ -28,7 +28,6 @@ Ext.define("custom-grid-with-deep-export", {
             showControls: true,
             type: 'HierarchicalRequirement',
             pageSize: 50,
-            searchAllProjects: false,
             enableUrlSharing: false
         }
     },
@@ -461,24 +460,11 @@ Ext.define("custom-grid-with-deep-export", {
         return typeof(this.getAppId()) == 'undefined';
     },
 
-    isMilestoneScoped: function() {
-        var result = false;
-
-        var tbscope = this.getContext().getTimeboxScope();
-        if (tbscope && tbscope.getType() == 'milestone') {
-            result = true;
-        }
-        return result
-    },
-
     searchAllProjects: function() {
-        var searchAllProjects = this.getSetting('searchAllProjects');
-        return this.isMilestoneScoped() && searchAllProjects;
+        return this.ancestorFilterPlugin.getIgnoreProjectScope();
     },
 
     getSettingsFields: function() {
-        return Rally.technicalservices.CustomGridWithDeepExportSettings.getFields({
-            showSearchAllProjects: this.isMilestoneScoped()
-        });
+        return Rally.technicalservices.CustomGridWithDeepExportSettings.getFields();
     }
 });
