@@ -9,7 +9,7 @@
     "deploy-debugsdk:watch": "nodemon --exec grunt deploy-debugsdk"
   },
   "dependencies": {
-    "@agile-central-technical-services/utils-ancestor-pi-app-filter": "^3.0.0",
+    "@agile-central-technical-services/utils-ancestor-pi-app-filter": "^2.1.0",
     "@agile-central-technical-services/utils-ancestor-pi-inline-filter": "^1.0.12",
     "@agile-central-technical-services/utils-shared-views": "^1.0.2"
   },
