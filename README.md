@@ -6,7 +6,7 @@ Note that as with other custom lists, the filter is only applied at the root lev
 
 Additionally, items can be filtered by an ancestor portfolio item. (e.g. filter Features that are ultimately children of the higher level Theme).
 If placed on a page that also has a [pi-ancestor-filter-broadcaster](https://github.com/RallyTechServices/pi-ancestor-filter-broadcaster),
-and filter by ancestor portfolio item is enabled, it will listen to the broadcaster for the selected ancestor.
+and filter by ancestor portfolio item is enabled, it will listen to the broadcaster for the selected ancestor or project scope.
 
 Several export options are provided and change depending on the root record type
 chosen in Edit App Settings...
@@ -34,10 +34,7 @@ If this app is on a Timebox Scoped page, then the appropriate timebox filter
 will be applied if the Timebox is valid for the queried model.  If the Timebox
 is not valid for the selected model, then the Timebox scope will be ignored.
 
-If the page is scoped to a Milestone Timebox, there is an additional setting
-to allow the user to respect or ignore the global project setting. This is
-useful when Portfolio Items associated with a specific Milestone are not
-constrained to a specific subset of the Project Hierarchy tree.
+Optionally, project scope can be ignored.
 
 ### Caveats
 * If an item has a parent that is out of scope, then that item's relationship will not be seen.
