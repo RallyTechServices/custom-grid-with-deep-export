@@ -165,7 +165,6 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
         if (children && children.length > 0){
             _.each(children, function(c){
                 var row = this._getExportDataRow(c, columns, new_ancestors);
-                me._addExportChildren(c, exportData, columns, new_ancestors);
                 // if this is a descendant of a story, set the field that
                 // represents the User Story column to be the first level
                 // level story
@@ -174,6 +173,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter',{
                      row[child_type] = new_ancestors[child_type];
                 }
                 exportData.push(row);
+                me._addExportChildren(c, exportData, columns, new_ancestors);
             }, this);
         }
 
