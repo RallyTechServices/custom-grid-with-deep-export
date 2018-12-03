@@ -364,7 +364,8 @@ Ext.define("custom-grid-with-deep-export", {
             query = this.getSetting('query');
 
         if (grid.currentCustomFilter && grid.currentCustomFilter.filters) {
-            filters = grid.currentCustomFilter.filters;
+            // Concat any current custom filters (don't assign as we don't want to modify the currentCustomFilter array)
+            filters = filters.concat(grid.currentCustomFilter.filters);
         }
 
         if (query) {
@@ -374,6 +375,11 @@ Ext.define("custom-grid-with-deep-export", {
         var timeboxScope = this.getContext().getTimeboxScope();
         if (timeboxScope && timeboxScope.isApplicable(grid.getGridOrBoard().store.model)) {
             filters.push(timeboxScope.getQueryFilter());
+        }
+
+        var ancestorFilter = this.ancestorFilterPlugin.getFilterForType(this.modelNames[0]);
+        if (ancestorFilter) {
+            filters.push(ancestorFilter);
         }
         return filters;
     },
