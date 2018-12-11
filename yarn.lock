@@ -2,13 +2,13 @@
 # yarn lockfile v1
 
 
-"@agile-central-technical-services/utils-ancestor-pi-app-filter@^2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@agile-central-technical-services/utils-ancestor-pi-app-filter/-/utils-ancestor-pi-app-filter-2.3.0.tgz#a68091b3df7ffbc2f3970518e4e5129ee5bf128b"
+"@agile-central-technical-services/utils-ancestor-pi-app-filter@^2.3.1":
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/@agile-central-technical-services/utils-ancestor-pi-app-filter/-/utils-ancestor-pi-app-filter-2.3.1.tgz#69b3c2c7983bcc555aaa4751feb6198bd15e31a2"
 
-"@agile-central-technical-services/utils-ancestor-pi-inline-filter@^1.0.13":
-  version "1.0.13"
-  resolved "https://registry.yarnpkg.com/@agile-central-technical-services/utils-ancestor-pi-inline-filter/-/utils-ancestor-pi-inline-filter-1.0.13.tgz#6ffdeea1ec43e9b64353d73766f39c2a7c4e5afb"
+"@agile-central-technical-services/utils-ancestor-pi-inline-filter@^1.0.14":
+  version "1.0.14"
+  resolved "https://registry.yarnpkg.com/@agile-central-technical-services/utils-ancestor-pi-inline-filter/-/utils-ancestor-pi-inline-filter-1.0.14.tgz#c70823d0cf10544ad47c472b6500d2459b603ef9"
 
 "@agile-central-technical-services/utils-shared-views@^1.0.2":
   version "1.0.2"
