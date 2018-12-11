@@ -251,7 +251,7 @@ Ext.define("custom-grid-with-deep-export", {
                 childModels: ['hierarchicalrequirement', 'task', 'defect', 'testcase']
             }];
         }
-        else if (currentModel.startsWith("portfolioitem")) {
+        else if (Ext.String.startsWith(currentModel,"portfolioitem")) {
             var piTypeNames = this.getPortfolioItemTypeNames();
             var idx = _.indexOf(piTypeNames, currentModel);
             var childModels = [];

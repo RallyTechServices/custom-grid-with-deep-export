@@ -247,7 +247,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter', {
     _getAncestorTypeColumns: function(rootModel) {
         var modelName = rootModel.toLowerCase();
         var columns = [];
-        if (modelName == 'hierarchicalrequirement' || modelName.startsWith('portfolioitem')) {
+        if (modelName == 'hierarchicalrequirement' || Ext.String.startsWith(modelName, 'portfolioitem')) {
             var piTypes = this.portfolioItemTypeObjects,
                 piIdx = -1;
 
