@@ -102,6 +102,7 @@ Ext.define('Rally.technicalservices.HierarchyExporter', {
         Ext.Array.each(data, function(obj) {
             var data = [];
             Ext.Array.each(column_keys, function(key) {
+
                 var val = obj[key];
                 //console.log('column-key', key, obj);
                 if (key === "Parent") {
@@ -119,12 +120,11 @@ Ext.define('Rally.technicalservices.HierarchyExporter', {
                     if (reNbsp.test(val)) {
                         val = val.replace(reNbsp, ' ');
                     }
-
-                    if (re.test(val)) { //enclose in double quotes if we have the delimiters
+                    
+                    if (re.test(val) || val.toString().search(delimiter) > 0) { //enclose in double quotes if we have the delimiters
                         val = val.replace(/\"/g, '\"\"');
                         val = Ext.String.format("\"{0}\"", val);
                     }
-
                 }
                 data.push(val);
             }, this);
