@@ -162,7 +162,6 @@ Ext.define('Rally.technicalservices.HierarchyExporter', {
         if (Ext.isEmpty(new_ancestors[record._type])) {
             new_ancestors[record._type] = record.FormattedID;
         }
-
         var children = record.loadedChildren;
         if (children && children.length > 0) {
             _.each(children, function(c) {
@@ -221,6 +220,18 @@ Ext.define('Rally.technicalservices.HierarchyExporter', {
                     data = recData[field] || recData["PortfolioItem"];
                 }
 
+                if (rec._type === "task"){
+                    if (field === "TaskActualTotal"){
+                        data = recData[field] || recData["Actuals"];
+                    }
+                    if (field === "TaskEstimateTotal"){
+                        data = recData[field] || recData["Estimate"];
+                    }
+                    if (field === "TaskRemainingTotal"){
+                        data = recData[field] || recData["ToDo"];
+                    }
+                }
+                
                 if (Ext.isObject(data)) {
                     if (data._tagsNameArray && data._tagsNameArray.length > 0) {
                         var names = _.pluck(data._tagsNameArray, 'Name');

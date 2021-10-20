@@ -388,6 +388,12 @@ Ext.define("custom-grid-with-deep-export", {
         if (Ext.Array.contains(fetch, 'TaskActualTotal')) {
             fetch.push('Actuals');
         }
+        if (Ext.Array.contains(fetch, 'TaskEstimateTotal')) {
+            fetch.push('Estimate');
+        }
+        if (Ext.Array.contains(fetch, 'TaskRemainingTotal')) {
+            fetch.push('ToDo');
+        }
         return fetch;
     },
     _getExportSorters: function() {
