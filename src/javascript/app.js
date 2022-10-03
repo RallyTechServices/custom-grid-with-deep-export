@@ -159,7 +159,10 @@ Ext.define("custom-grid-with-deep-export", {
                                 whiteListFields: [
                                     'Tags',
                                     'Milestones'
-                                ]
+                                ],
+                                addQuickFilterConfig: {
+                                    blackListFields: ['FlowState','FlowStateChangedDate']
+                                }
                             }
                         }
                     }
