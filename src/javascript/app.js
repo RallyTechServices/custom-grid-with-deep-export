@@ -153,13 +153,23 @@ Ext.define("custom-grid-with-deep-export", {
                         stateId: this.getModelScopedStateId(currentModelName, 'filters'),
                         modelNames: this.modelNames,
                         inlineFilterPanelConfig: {
+                            advancedFilterPanelConfig: {
+                                advancedFilterRowsConfig:{
+                                    propertyFieldConfig: {
+                                        blackListFields: ['FlowState','FlowStateChangedDate']
+                                    }
+                                }
+                            },
                             quickFilterPanelConfig: {
                                 portfolioItemTypes: this.portfolioItemTypes,
                                 modelName: currentModelName,
                                 whiteListFields: [
                                     'Tags',
                                     'Milestones'
-                                ]
+                                ],
+                                addQuickFilterConfig: {
+                                    blackListFields: ['FlowState','FlowStateChangedDate']
+                                }
                             }
                         }
                     }
